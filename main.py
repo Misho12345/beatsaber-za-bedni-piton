@@ -1,13 +1,19 @@
 import moderngl_window as mglw
 import moderngl_window.geometry
 from math import *
+from screeninfo import get_monitors
 import win32api
 
 cam_rot = [0, 0]
-cam_pos = [-3, 5, 0]
+cam_pos = [-3, 10, 0]
+
+sword_rot = [0, 0, 1]
+sword_pos = [0, 0, 0]
 
 SPEED = 0.5
 SENSITIVITY = 1.5
+
+monitor = get_monitors()[0]
 
 
 def add(v1: list, v2: list) -> list:
@@ -28,14 +34,12 @@ def normalize(v: list) -> list:
 class App(mglw.WindowConfig):
     title = "Ray Marching"
     cursor = False
-    # fullscreen = True
-
+    fullscreen = True
+    window_size = monitor.width, monitor.height
     resource_dir = 'programs'
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-
-        self.window_size = win32api.GetSystemMetrics(0), win32api.GetSystemMetrics(1)
         print(self.window_size)
 
         self.quad = mglw.geometry.quad_fs()
@@ -46,14 +50,24 @@ class App(mglw.WindowConfig):
         self.s_pressed = False
         self.d_pressed = False
 
-        # self.texture1 = self.load_texture_2d('../textures/test.png')
+        # self.texture0 = self.load_texture_2d('../textures/ground.jpg')
+        # self.texture1 = self.load_texture_2d('../textures/grass.jpg')
+        #
+        # self.program['u_texture0'] = 0
+        # self.program['u_texture1'] = 1
 
         self.program['u_camPos'] = cam_pos
         self.program['u_camRot'] = cam_rot
+
+        self.program['u_swordPos'] = sword_pos
+        self.program['u_swordRot'] = sword_rot
+
         self.program['u_resolution'] = self.window_size
-        # self.program['u_texture1'] = 1
 
     def render(self, time, frame_time):
+        sword_rot[0] = cos(time)
+        sword_rot[2] = sin(time)
+
         self.mouse_move()
         velocity = [0, 0, 0]
 
@@ -67,19 +81,27 @@ class App(mglw.WindowConfig):
             velocity[2] += 1
 
         if velocity != [0, 0, 0]:
-            velocity = normalize(velocity)
-
             forward = normalize([cos(cam_rot[0]), 0, sin(cam_rot[0])])
             right = [forward[2], 0, -forward[0]]
+
+            velocity = normalize(velocity)
             velocity = add(mul(right, velocity[2]), mul(forward, velocity[0]))
+
             cam_pos[0] += velocity[0] * SPEED
             cam_pos[2] += velocity[2] * SPEED
 
         self.ctx.clear()
         self.program['u_camRot'] = cam_rot
         self.program['u_camPos'] = cam_pos
+
+        self.program['u_swordPos'] = sword_pos
+        self.program['u_swordRot'] = sword_rot
+
         self.program['u_time'] = time
+
+        # self.texture0.use(location=0)
         # self.texture1.use(location=1)
+
         self.quad.render(self.program)
 
     def mouse_move(self):
