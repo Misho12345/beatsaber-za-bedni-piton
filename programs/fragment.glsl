@@ -6,6 +6,8 @@ uniform float u_time;
 uniform vec2 u_resolution;
 uniform vec3 u_camPos;
 uniform vec2 u_camRot;
+uniform vec3 u_swordPos;
+uniform vec3 u_swordRot;
 
 #define MAX_MARCH_STEPS 200
 #define MIN_DIST 0.01
@@ -99,27 +101,32 @@ Material materials[] = {
 	Material(vec3(0.8, 0.8, 0.2), 0.5)
 };
 
-Object sceneSDF(vec3 pos, bool calcColor) {
-    float sphereDist = sphereSDF(pos - vec3(2.0, 4.0 + cos(u_time), 2.0), 0.5);
-    float torus1Dist = torusSDF(pos - vec3(2.0, 1.0, 2.0), vec2(2.0 + sin(u_time), 1));
-    float boxDist = boxSDF(pos - vec3(2.0, 3.0, 2.0), vec3(1.0, 0.3, 1.0));
-    float planeDist = pos.y;
-
-    if (!calcColor) {
-        float d = sdiff(pos.y, torus1Dist, 0.7);
-        d = smin(d, sdiff(boxDist, sphereDist, 0.7), 0.7);
-    	return Object(d, materials[0]);
+float swordSDF(vec3 origin, vec3 dir, float rad) {
+    float d = sphereSDF(origin, rad);
+    dir = normalize(dir) * rad * 1.5;
+    vec3 curr = origin;
+    for (int i = 0; i < 10; i++) {
+        curr += dir;
+        d = smin(d, sphereSDF(curr, rad), 0.7);
     }
-
-    Object plane = Object(pos.y, materials[3]);
-    Object sphere = Object(sphereDist, materials[0]);
-    Object torus1 = Object(torus1Dist, materials[1]);
-    Object box = Object(boxDist, materials[4]);
-
-    Object o = sdiff(plane, torus1, 0.7);
-    o = smin(o, sdiff(box, sphere, 0.7), 0.7);
-    return o;
+    return d;
 }
+
+Object sceneSDF(vec3 pos, bool calcColor) {
+    float t = u_time;
+
+    //float swordDist = swordSDF(u_swordPos, u_swordRot , 0.5);
+    //if (!calcColor) return Object(swordDist, materials[0]);
+    //return Object(swordDist, materials[1]);
+    float swordDist = swordSDF(u_swordPos, u_swordRot, 1.0);
+    float sphereDist = sphereSDF(pos - vec3(2.0, 4.0 + cos(u_time), 2.0), 0.5);
+    if (!calcColor) return Object(min(swordDist, sphereDist), materials[0]);
+    Object sword = Object(swordDist, materials[1]);
+    Object sphere =Object(sphereDist, materials[2]);
+
+    return min(sword, sphere);
+}
+
 
 vec3 normal(vec3 p) {
    	vec2 e = vec2(0.01, 0.0);

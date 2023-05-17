@@ -3,11 +3,82 @@ import moderngl_window.geometry
 from math import *
 import win32api
 
+# a= 'Ax:+0.11Ay:-0.03Az:+0.92Gx:+0.03Gy:+0.00Gz:+0.02'
+# print(len(a))
+# import serial
+# serialcomm = serial.Serial('COM5', 38400,timeout=0.05)
+# serialcomm.timeout = 1
+# j = 0
+# def decodeInfo(string):
+#     result = ['','','','','','']
+#     if len(a)==50:
+#         o=0
+#         i=3
+#         while i<len(a):
+#             for j in range(5):
+#                 result[o]+=string[i+j]
+#             o+=1
+#             i+=8
+#         for i in range(len(result)):
+#             result[i]=float(result[i])
+#     return result
+# def give3DVecFromSerialString(string):
+#     axes = decodeInfo(string)
+# import math
+# from typing import List
+#
+# def get_orientation(sensor_data: List[float]):
+#     # Extract accelerometer and gyroscope data from sensor_data
+#     ax, ay, az, gx, gy, gz = sensor_data
+#
+#     # Calculate pitch and roll angles using accelerometer data
+#     pitch = math.atan2(ax, math.sqrt(ay ** 2 + az ** 2))
+#     roll = math.atan2(ay, math.sqrt(ax ** 2 + az ** 2))
+#
+#     # Calculate yaw angle using gyroscope data
+#     dt = 0.01  # time step in seconds
+#     yaw = 0
+#     for gyro in [gx, gy, gz]:
+#         yaw += gyro * dt
+#     yaw = math.radians(yaw)
+#
+#     # Calculate the magnitude of the acceleration vector
+#     acc_magnitude = math.sqrt(ax ** 2 + ay ** 2 + az ** 2)
+#
+#     # Normalize the acceleration vector
+#     if acc_magnitude != 0:
+#         ax /= acc_magnitude
+#         ay /= acc_magnitude
+#         az /= acc_magnitude
+#
+#     # Convert pitch, roll, and yaw angles to a Vector3
+#     x = math.cos(yaw) * math.cos(roll)
+#     y = math.sin(yaw) * math.cos(roll)
+#     z = math.sin(roll)
+#
+#     return [x,y,z]
+# print(decodeInfo(a))
+# j=0
+# while j<50:
+#     a = serialcomm.readline().decode('utf8', 'ignore')
+#     if(len(a)==50):
+#         b = decodeInfo(a)
+#         print(b,a)
+#         sensor_data = b  # example sensor data
+#         orientation = get_orientation(sensor_data)
+#         print(orientation)  # prints "Vector3(0.0053, -0.0499, 0.9987)"
+#     else:
+#         print(len(a),a)
+#     j=j+1
+
+sword_pos = [2,2,2]
+sword_rot = [1, 1 ,1]
+
 cam_rot = [0, 0]
 cam_pos = [-3, 5, 0]
 
 SPEED = 0.5
-SENSITIVITY = 1.5
+SENSITIVITY = 3.5
 
 
 def add(v1: list, v2: list) -> list:
@@ -26,9 +97,9 @@ def normalize(v: list) -> list:
 
 
 class App(mglw.WindowConfig):
-    title = "Ray Marching"
+    title = "mishu e koza"
     cursor = False
-    # fullscreen = True
+    fullscreen = True
 
     resource_dir = 'programs'
 
@@ -53,6 +124,9 @@ class App(mglw.WindowConfig):
         self.program['u_resolution'] = self.window_size
         # self.program['u_texture1'] = 1
 
+        self.program['u_swordPos'] = sword_pos
+        self.program['u_swordRot'] = sword_rot
+    # serialcomm.close()
     def render(self, time, frame_time):
         self.mouse_move()
         velocity = [0, 0, 0]
@@ -79,6 +153,8 @@ class App(mglw.WindowConfig):
         self.program['u_camRot'] = cam_rot
         self.program['u_camPos'] = cam_pos
         self.program['u_time'] = time
+        self.program['u_swordPos'] = sword_pos
+        self.program['u_swordRot'] = sword_rot
         # self.texture1.use(location=1)
         self.quad.render(self.program)
 
