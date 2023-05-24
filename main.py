@@ -1,6 +1,5 @@
 import moderngl_window as mglw
 import moderngl_window.geometry
-from math import *
 from screeninfo import get_monitors
 import win32api
 import numpy as np
@@ -8,9 +7,11 @@ import struct
 
 import sys
 sys.path.append("modules")
-swordPluged = 1
-if swordPluged:
-    from swordRotation import *
+sword_plugged = False
+if sword_plugged:
+    from modules.swordRotation import *
+else:
+    from math import *
 
 cam_rot = [0, 0]
 cam_pos = [0, 150, 0]
@@ -110,7 +111,7 @@ class App(mglw.WindowConfig):
             cam_pos[1] = max(cam_pos[1], self.ground_height)
 
         self.update_player_y(frame_time)
-        if swordPluged:
+        if sword_plugged:
             rotateSword(sword_rot)
             # sword_rot[:]=rotateSword()
         self.mouse_move()
