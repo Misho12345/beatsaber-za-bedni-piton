@@ -3,7 +3,9 @@ import moderngl_window.geometry
 from math import *
 from screeninfo import get_monitors
 import win32api
-swordPluged = 0
+import sys
+sys.path.append("modules")
+swordPluged = 1
 if swordPluged:
     from swordRotation import *
 cam_rot = [0, 0]
@@ -70,7 +72,8 @@ class App(mglw.WindowConfig):
 
     def render(self, time, frame_time):
         if swordPluged:
-            rotateSword()
+            rotateSword(sword_rot)
+            # sword_rot[:]=rotateSword()
         self.mouse_move()
         velocity = [0, 0, 0]
 
