@@ -1,40 +1,36 @@
 Material materials[] = {
-	Material(vec3(0.8, 0.2, 0.2), 0.5),
-	Material(vec3(0.2, 0.8, 0.2), 0.5),
-	Material(vec3(0.2, 0.2, 0.8), 0.5),
-	Material(vec3(0.8, 0.8, 0.8), 0.5),
-	Material(vec3(0.8, 0.8, 0.2), 0.5)
+	Material(vec3(0.6, 0.5, 0.2), 0.5),
+	Material(vec3(0.2, 0.2, 0.2), 0.5),
+	Material(vec3(0.3, 0.2, 0.1), 0.5),
+	Material(vec3(0.8, 0.2, 0.2), 0.5)
 };
 
-//#define PI 3.14159
-//
-//float swordSDF(in vec3 pos, in vec3 dir) {
-//    float sphere = sphereSDF(pos, 1.4);
-//
-//    vec3 rot = dir2angles(dir);
-//    vec3 bp = pos;
-//    bp = (rotateX(rot.x) * rotateY(rot.y) * rotateZ(rot.z) * vec4(bp, 1.0)).xyz;
-//
-//    float box = boxSDF(bp, vec3(5, 1, 1));
-//
-//    return smin(box, sphere, 0.5);
-//}
 
-float swordSDF(in vec3 origin, in vec3 dir) {
-    float rad = 1;
-    float d = sphereSDF(origin, rad);
-    for (int i = 0; i < 10; i++) {
-        dir = normalize(dir) * rad * 1.5;
-        origin += dir;
-        rad -= 0.03;
+Object swordSDF(in vec3 pos, in vec3 dir) {
+    dir = normalize(dir);
 
-        d = smin(d, sphereSDF(origin, rad), 0.7);
-    }
-    return d;
+    vec3 hiltP = rotate(pos + 4.6 * dir, dir2angles(dir));
+
+    vec3 guardP = rotate(pos + 8 * dir, dir2angles(dir));
+    guardP.zx *= rotateMat(guardP.y / 7.0);
+
+    vec3 bladeP = rotate(pos + 28 * dir, dir2angles(dir));
+    bladeP.yz *= rotateMat(bladeP.x / 10);
+
+    float b1 = mix(0.0, 0.8, 1 - clamp01(bladeP.x / 27));
+    float b2 = mix(0.6, 0.8, 1 - clamp01((abs(bladeP.x - 5) + 5) / 27));
+    float b = min(b1, b2);
+
+    Object sphere = Object(sphereSDF(pos, 1.4), materials[2]);
+    Object hilt = Object(cylinderSDF(hiltP, 0.7 + abs(sin(hiltP.x * 2) / 10.0), 7), materials[1]);
+    Object guard = Object(cylinderSDF(guardP, 3, 0.45), materials[2]);
+    Object blade = Object(boxSDF(bladeP, vec3(20, b, b)), materials[3]);
+
+    return smin(smin(smin(hilt, sphere, 0.3), guard, 0.7), blade, 0.7);
 }
 
 Object sceneSDF(in vec3 pos, bool calcColor) {
-    return Object(swordSDF(pos - u_swordPos, u_swordRot), materials[1]);
+    return swordSDF(pos - u_swordPos, u_swordRot);
 
     if (!calcColor) {
         float groundDist = mapH(pos);

@@ -30,8 +30,8 @@ float terrainHigh(in vec3 p) {
 
     float dist = length(p - u_camPos);
     if (dist < 200.0) {
-        float rockT = texture(u_texture0, 0.03 * p.xz).x / 2.0;
-        float grassT = texture(u_texture1, 0.03 * p.xz).x / 2.0;
+        float rockT = texture(u_texture0, 0.03 * p.xz).x / 5.0;
+        float grassT = texture(u_texture1, 0.03 * p.xz).x / 5.0;
 
         t -= mix(rockT, grassT, t / 95.0) * (1.0 - dist / 200.0);
     }
@@ -77,7 +77,10 @@ Material getMaterial(in vec3 pos, in vec2 res) {
         textureLod(u_texture1, 3e-5 * pos.xz / (fdist + 1), fdist).x,
         textureLod(u_texture1, 3e-5 * pos.xz / (fdist + 2), fdist + 1).x, k) * 1.9;
 
-    col = mix(gcol, col, clamp01(pos.y * s / 70.0));
+    float l = clamp01(pos.y * s / 70.0);
+    if (pos.y > 70) l = 1.0;
+
+    col = mix(gcol, col, l);
     col *= mix(
         textureLod(u_texture0, 3e-2 * pos.xz / (fdist + 1), fdist).x,
         textureLod(u_texture0, 3e-2 * pos.xz / (fdist + 2), fdist + 1).x, k) * 3.2;

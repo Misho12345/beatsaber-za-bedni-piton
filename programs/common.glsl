@@ -26,6 +26,13 @@ float boxSDF(in vec3 p, in vec3 b) {
   	return length(max(d, 0.0)) + min(max(d.x, max(d.y, d.z)), 0.0);
 }
 
+float cylinderSDF(vec3 p, float r, float h) {
+    vec3 axis = vec3(0.0, p.y, p.z);
+    float d = length(axis) - r;
+    float dx = abs(p.x) - h / 2.0;
+    return max(d, dx);
+}
+
 Material mix(in Material m1, in Material m2, float k) {
 	return Material(
 		mix(m1.albedo, m2.albedo, k),
@@ -81,46 +88,23 @@ Object sdiff(in Object obj1, in Object obj2, float k) {
 }
 
 vec3 dir2angles(vec3 dir) {
-    float yaw = atan(dir.x, dir.z);
-    float pitch = atan(dir.y, length(dir.xz));
     float roll = 0.0;
+    float yaw = 3.14159265359 + atan(dir.z, dir.x);
+    float pitch = atan(dir.y, length(dir.xz));
 
-    return vec3(yaw, pitch, roll);
+    return vec3(roll, yaw, pitch);
 }
 
-mat4 rotateX(float angle)
-{
-    float c = cos(angle);
-    float s = sin(angle);
-
-    return mat4(
-        1, 0, 0, 0,
-        0, c, -s, 0,
-        0, s, c, 0,
-        0, 0, 0, 1
-    );
+mat2 rotateMat(float a) {
+    float s = sin(a);
+    float c = cos(a);
+    return mat2(c, -s, s, c);
 }
 
-mat4 rotateY(float theta) {
-    float c = cos(theta);
-    float s = sin(theta);
+vec3 rotate(in vec3 p, in vec3 a) {
+	p.yz *= rotateMat(a.x);
+    p.zx *= rotateMat(a.y);
+    p.xy *= rotateMat(a.z);
 
-    return mat4(
-        vec4(c, 0, -s, 0),
-        vec4(0, 1, 0, 0),
-        vec4(s, 0, c, 0),
-        vec4(0, 0, 0, 1)
-    );
-}
-
-mat4 rotateZ(float theta) {
-    float c = cos(theta);
-    float s = sin(theta);
-
-    return mat4(
-        vec4(c, -s, 0, 0),
-        vec4(s, c, 0, 0),
-        vec4(0, 0, 1, 0),
-        vec4(0, 0, 0, 1)
-    );
+	return p;
 }

@@ -8,6 +8,7 @@ import struct
 import sys
 sys.path.append("modules")
 sword_plugged = False
+
 if sword_plugged:
     from modules.swordRotation import *
 else:
@@ -17,7 +18,7 @@ cam_rot = [0, 0]
 cam_pos = [0, 150, 0]
 prev_cam_pos = []
 
-sword_rot = [0, 1, 1]
+sword_rot = [0, 1, 0]
 sword_pos = [0, 80, 0]
 
 SPEED = 1
@@ -114,6 +115,11 @@ class App(mglw.WindowConfig):
         if sword_plugged:
             rotateSword(sword_rot)
             # sword_rot[:]=rotateSword()
+        else:
+            sword_rot[0] = cos(time)
+            sword_rot[1] = sin(time / 2.0)
+            sword_rot[2] = sin(time)
+
         self.mouse_move()
         self.player_move(frame_time)
 
