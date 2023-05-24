@@ -6,6 +6,20 @@ Material materials[] = {
 	Material(vec3(0.8, 0.8, 0.2), 0.5)
 };
 
+//#define PI 3.14159
+//
+//float swordSDF(in vec3 pos, in vec3 dir) {
+//    float sphere = sphereSDF(pos, 1.4);
+//
+//    vec3 rot = dir2angles(dir);
+//    vec3 bp = pos;
+//    bp = (rotateX(rot.x) * rotateY(rot.y) * rotateZ(rot.z) * vec4(bp, 1.0)).xyz;
+//
+//    float box = boxSDF(bp, vec3(5, 1, 1));
+//
+//    return smin(box, sphere, 0.5);
+//}
+
 float swordSDF(in vec3 origin, in vec3 dir) {
     float rad = 1;
     float d = sphereSDF(origin, rad);
@@ -19,29 +33,18 @@ float swordSDF(in vec3 origin, in vec3 dir) {
     return d;
 }
 
-
-Object sceneSDF(in vec3 pos, in bool calcColor) {
-    float sphereDist = sphereSDF(pos - vec3(2.0, 4.0 + cos(u_time), 2.0), 0.5);
-//    float torus1Dist = torusSDF(pos - vec3(2.0, 1.0, 2.0), vec2(2.0 + sin(u_time), 1));
-//    float boxDist = boxSDF(pos - vec3(2.0, 3.0, 2.0), vec3(1.0, 0.3, 1.0));
-//    float groundDist = groundSDF(pos);
-    float swordDist = swordSDF(pos - u_swordPos, u_swordRot);
+Object sceneSDF(in vec3 pos, bool calcColor) {
+    return Object(swordSDF(pos - u_swordPos, u_swordRot), materials[1]);
 
     if (!calcColor) {
-        float d = min(sphereDist, swordDist);
-//        float d = sdiff(groundDist, torus1Dist, 0.7);
-//        d = smin(d, sdiff(boxDist, sphereDist, 0.7), 0.7);
-    	return Object(d, materials[0]);
+        float groundDist = mapH(pos);
+        return Object(groundDist, materials[0]);
     }
 
-//    Object ground = Object(groundDist, materials[1]);
-    Object sphere = Object(sphereDist, materials[0]);
-    Object sword = Object(swordDist, materials[2]);
-//    Object torus1 = Object(torus1Dist, materials[1]);
-//    Object box = Object(boxDist, materials[4]);
+    vec2 groundDist = map(pos);
+    Object ground = Object(groundDist.x, getMaterial(pos, groundDist));
 
-    Object o = min(sphere, sword);
-//    Object o = sdiff(ground, torus1, 0.7);
-//    o = smin(o, sdiff(box, sphere, 0.7), 0.7);
-    return o;
+    return ground;
+
+    float t = u_time;
 }
