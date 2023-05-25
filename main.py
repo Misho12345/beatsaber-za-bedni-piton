@@ -18,8 +18,8 @@ cam_rot = [0, 0]
 cam_pos = [0, 150, 0]
 prev_cam_pos = []
 
-sword_rot = [0, 1, 0]
-sword_pos = [0, 80, 0]
+sword_dir = [0, -1, 1]
+sword_pos = [-0.7, -1.5, -0.5]
 
 SPEED = 1
 SENSITIVITY = 1.5
@@ -81,7 +81,7 @@ class App(mglw.WindowConfig):
         self.program['u_camRot'] = cam_rot
 
         self.program['u_swordPos'] = sword_pos
-        self.program['u_swordRot'] = sword_rot
+        self.program['u_swordDir'] = sword_dir
 
         self.program['u_resolution'] = self.window_size
 
@@ -113,12 +113,8 @@ class App(mglw.WindowConfig):
 
         self.update_player_y(frame_time)
         if sword_plugged:
-            rotateSword(sword_rot)
+            rotateSword(sword_dir)
             # sword_rot[:]=rotateSword()
-        else:
-            sword_rot[0] = cos(time)
-            sword_rot[1] = sin(time / 2.0)
-            sword_rot[2] = sin(time)
 
         self.mouse_move()
         self.player_move(frame_time)
@@ -128,7 +124,7 @@ class App(mglw.WindowConfig):
         self.program['u_camPos'] = cam_pos
 
         self.program['u_swordPos'] = sword_pos
-        self.program['u_swordRot'] = sword_rot
+        self.program['u_swordDir'] = sword_dir
 
         self.program['u_time'] = time
 

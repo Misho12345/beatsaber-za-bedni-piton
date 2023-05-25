@@ -12,6 +12,10 @@ float clamp01(float v) {
 	return clamp(v, 0.0, 1.0);
 }
 
+float planeSDF(in vec3 pos, vec3 dir) {
+	return pos.y + dot(dir, pos);
+}
+
 float sphereSDF(in vec3 pos, float radius) {
     return length(pos) - radius;
 }
@@ -31,6 +35,13 @@ float cylinderSDF(vec3 p, float r, float h) {
     float d = length(axis) - r;
     float dx = abs(p.x) - h / 2.0;
     return max(d, dx);
+}
+
+float capsuleSDF(vec3 p, vec3 a, vec3 b, float r) {
+    vec3 pa = p - a;
+    vec3 ba = b - a;
+    float h = clamp01(dot(pa, ba) / dot(ba, ba));
+    return length(pa - ba * h) - r;
 }
 
 Material mix(in Material m1, in Material m2, float k) {
@@ -101,7 +112,7 @@ mat2 rotateMat(float a) {
     return mat2(c, -s, s, c);
 }
 
-vec3 rotate(in vec3 p, in vec3 a) {
+vec3 rotate(inout vec3 p, in vec3 a) {
 	p.yz *= rotateMat(a.x);
     p.zx *= rotateMat(a.y);
     p.xy *= rotateMat(a.z);

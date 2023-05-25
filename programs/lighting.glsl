@@ -3,7 +3,7 @@ vec3 normal(in vec3 pos) {
     return normalize(vec3(
         sceneSDF(pos + e.xyy, false).dist - sceneSDF(pos - e.xyy, false).dist,
         sceneSDF(pos + e.yxy, false).dist - sceneSDF(pos - e.yxy, false).dist,
-        sceneSDF(pos + e.yyx, false).dist - sceneSDF(pos - e.yxx, false).dist
+        sceneSDF(pos + e.yyx, false).dist - sceneSDF(pos - e.yyx, false).dist
     ));
 }
 

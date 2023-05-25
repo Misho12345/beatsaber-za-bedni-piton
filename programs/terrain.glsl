@@ -30,10 +30,10 @@ float terrainHigh(in vec3 p) {
 
     float dist = length(p - u_camPos);
     if (dist < 200.0) {
-        float rockT = texture(u_texture0, 0.03 * p.xz).x / 5.0;
-        float grassT = texture(u_texture1, 0.03 * p.xz).x / 5.0;
+        float rockT = texture(u_texture0, 0.03 * p.xz).x;
+        float grassT = texture(u_texture1, 0.03 * p.xz).x;
 
-        t -= mix(rockT, grassT, t / 95.0) * (1.0 - dist / 200.0);
+        t -= mix(rockT, grassT, t / 95.0) * (1.0 - dist / 200.0) / 25.0;
     }
 
     return t * 55.0;

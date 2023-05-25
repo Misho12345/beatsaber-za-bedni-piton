@@ -9,7 +9,7 @@ uniform vec3 u_camPos;
 uniform vec2 u_camRot;
 
 uniform vec3 u_swordPos;
-uniform vec3 u_swordRot;
+uniform vec3 u_swordDir;
 
 uniform sampler2D u_texture0;
 uniform sampler2D u_texture1;
@@ -24,6 +24,8 @@ uniform sampler2D u_texture1;
 
 #define FOV tan(radians(50.0))
 #define EPS 0.001
+
+vec3 orientation = vec3(0.0);
 
 #include common.glsl
 #include terrain.glsl
@@ -104,8 +106,11 @@ void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy * 2.0 - 1.0;
     uv.x *= u_resolution.x / u_resolution.y;
 
-    vec3 rayDir = getCam() * normalize(vec3(uv, FOV));
+    mat3 cam = getCam();
+    vec3 rayDir = cam * normalize(vec3(uv, FOV));
 	vec3 rayOrigin = u_camPos;
+
+    orientation = cam.xyz;
 
 	vec3 color = raymarch(rayOrigin, rayDir);
 	fragColor = vec4(color, 1.0);
