@@ -14,6 +14,9 @@ uniform vec3 u_swordDir;
 uniform sampler2D u_texture0;
 uniform sampler2D u_texture1;
 
+#define ENEMIES_COUNT 3
+//uniform vec3 u_enemyPos[ENEMIES_COUNT];
+
 #define MAX_MARCH_STEPS 200.0
 #define MAX_DIST 2500.0
 

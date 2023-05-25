@@ -37,11 +37,9 @@ float cylinderSDF(vec3 p, float r, float h) {
     return max(d, dx);
 }
 
-float capsuleSDF(vec3 p, vec3 a, vec3 b, float r) {
-    vec3 pa = p - a;
-    vec3 ba = b - a;
-    float h = clamp01(dot(pa, ba) / dot(ba, ba));
-    return length(pa - ba * h) - r;
+float capsuleSDF(vec3 p, float h, float r) {
+    vec3 pa = abs(p) - vec3(0.0, h, 0.0);
+    return length(max(pa, 0.0)) + min(max(pa.x, max(pa.y, pa.z)), 0.0) - r;
 }
 
 Material mix(in Material m1, in Material m2, float k) {

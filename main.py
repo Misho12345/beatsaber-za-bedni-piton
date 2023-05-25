@@ -85,6 +85,12 @@ class App(mglw.WindowConfig):
 
         self.program['u_resolution'] = self.window_size
 
+        # self.program['u_enemyPos'] = [
+        #     [0, 90, 0],
+        #     [10, 90, 0],
+        #     [20, 90, 0]
+        # ]
+
         with open("programs/compute_floor.glsl") as f:
             self.compute_shader = self.ctx.compute_shader(f.read())
 
