@@ -14,8 +14,9 @@ uniform vec3 u_swordDir;
 uniform sampler2D u_texture0;
 uniform sampler2D u_texture1;
 
-#define ENEMIES_COUNT 3
-//uniform vec3 u_enemyPos[ENEMIES_COUNT];
+#define ENEMIES_COUNT 9
+uniform vec3 u_enemiesPos[ENEMIES_COUNT];
+bool enemiesVisible[ENEMIES_COUNT];
 
 #define MAX_MARCH_STEPS 200.0
 #define MAX_DIST 2500.0
@@ -105,6 +106,21 @@ mat3 getCam() {
     return mat3(camR, camU, camF);
 }
 
+bool intersectBox(vec3 rayOrigin, vec3 rayDir, vec3 boxMin, vec3 boxMax) {
+    vec3 invRayDir = 1.0 / rayDir;
+
+    vec3 tmin = (boxMin - rayOrigin) * invRayDir;
+    vec3 tmax = (boxMax - rayOrigin) * invRayDir;
+
+    vec3 realMin = min(tmin, tmax);
+    vec3 realMax = max(tmin, tmax);
+
+    float t0 = max(max(realMin.x, realMin.y), realMin.z);
+    float t1 = min(min(realMax.x, realMax.y), realMax.z);
+
+    return t1 >= t0 && t1 >= 0.0;
+}
+
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy * 2.0 - 1.0;
     uv.x *= u_resolution.x / u_resolution.y;
@@ -114,6 +130,12 @@ void main() {
 	vec3 rayOrigin = u_camPos;
 
     orientation = cam.xyz;
+
+    for (int i = 0; i < ENEMIES_COUNT; i++) {
+        vec3 pos = u_enemiesPos[i] + vec3(0, 2.0, 0.5);
+        vec3 halfSize = vec3(4, 6.5, 5);
+        enemiesVisible[i] = intersectBox(rayOrigin, rayDir, pos - halfSize, pos + halfSize);
+    }
 
 	vec3 color = raymarch(rayOrigin, rayDir);
 	fragColor = vec4(color, 1.0);

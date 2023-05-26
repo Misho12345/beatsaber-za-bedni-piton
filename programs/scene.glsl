@@ -38,17 +38,13 @@ Object swordSDF(in vec3 pos, in vec3 dir) {
 }
 
 Object amogusSDF(in vec3 pos) {
-    vec3 p = pos - vec3(0, 80, 0);
+    float leg1Dist = capsuleSDF(pos - vec3(-1.7, 0, -0.5), 2.3, 1);
+    float leg2Dist = capsuleSDF(pos - vec3(1.7, 0, -0.5), 2.3, 1);
+    float bodyDist = capsuleSDF(pos - vec3(0, 4, 0), 1.5, 3);
+    float backpackDist = sdiff(capsuleSDF(pos - vec3(0, 4, 1), 1, 3), pos.z - 2.5, 1.0); //TODO: try later beveled box
 
-    float plane = p.y + sin(u_time) * 5 - 5;
-
-    float leg1Dist = capsuleSDF(p - vec3(-1.7, 0, -0.5), 2.3, 1);
-    float leg2Dist = capsuleSDF(p - vec3(1.7, 0, -0.5), 2.3, 1);
-    float bodyDist = capsuleSDF(p - vec3(0, 4, 0), 1.5, 3);
-    float backpackDist = sdiff(capsuleSDF(p - vec3(0, 4, 1), 1, 3), p.z - 2.5, 1.0); //TODO: try later beveled box
-
-    vec3 ep = p - vec3(0, 5, -2);
-    ep.xy *= rotateMat(3.14/2);
+    vec3 ep = pos - vec3(0, 5, -2);
+    ep.xy *= rotateMat(1.57079632679);
     float eyesDist = capsuleSDF(ep, 1, 1.5);
 
     float b = min(leg1Dist, leg2Dist);
@@ -58,27 +54,21 @@ Object amogusSDF(in vec3 pos) {
     Object body = Object(b, materials[3]);
     Object eyes = Object(eyesDist, materials[4]);
 
-    Object res = smin(body, eyes, 0.1);
-    res.dist = abs(res.dist) - 0.2;
-    res.dist = smax(res.dist, p.y + sin(u_time) * 5 - 4 , 0.7);
-
-    return res;
+    return smin(body, eyes, 0.1);
 }
 
 Object sceneSDF(in vec3 pos, bool calcColor) {
-    Object enemies = amogusSDF(pos);//Object(MAX_DIST, materials[0]);
-//    for (int i = 0; i < ENEMIES_COUNT; i++) {
-//        Object newCube = Object(boxSDF(u_enemyPos[i], vec3(1)), materials[0]);
-//        enemies = min(newCube, enemies);
-//    }
+    Object enemies = Object(MAX_DIST, materials[0]);
+    for (int i = 0; i < ENEMIES_COUNT; i++)
+        if (enemiesVisible[i])
+            enemies = min(enemies, amogusSDF(pos - u_enemiesPos[i]));
+
     return enemies;
 
     vec3 swordP = pos - u_camPos;
     rotate(swordP, dir2angles(orientation));
     swordP -= u_swordPos;
     Object sword = swordSDF(swordP, u_swordDir);
-
-    return min(enemies, sword);
 
     if (!calcColor) {
         float groundDist = mapH(pos);
@@ -89,6 +79,7 @@ Object sceneSDF(in vec3 pos, bool calcColor) {
     Object ground = Object(groundDist.x, getMaterial(pos, groundDist));
 
     return min(sword, ground);
+//    return min(min(sword, ground), enemies);
 
     float t = u_time;
 }

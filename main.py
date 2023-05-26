@@ -4,6 +4,7 @@ from screeninfo import get_monitors
 import win32api
 import numpy as np
 import struct
+from pyrr import Vector3
 
 import sys
 sys.path.append("modules")
@@ -25,6 +26,18 @@ SPEED = 1
 SENSITIVITY = 1.5
 
 monitor = get_monitors()[0]
+
+enemies = [
+    Vector3([0, 60, 0]),
+    Vector3([20, 60, 0]),
+    Vector3([40, 60, 0]),
+    Vector3([0, 60, 10]),
+    Vector3([20, 60, 10]),
+    Vector3([40, 60, 10]),
+    Vector3([0, 60, 20]),
+    Vector3([20, 60, 20]),
+    Vector3([40, 60, 20])
+]
 
 
 def add(v1: list, v2: list) -> list:
@@ -85,11 +98,7 @@ class App(mglw.WindowConfig):
 
         self.program['u_resolution'] = self.window_size
 
-        # self.program['u_enemyPos'] = [
-        #     [0, 90, 0],
-        #     [10, 90, 0],
-        #     [20, 90, 0]
-        # ]
+        self.program['u_enemiesPos'] = enemies
 
         with open("programs/compute_floor.glsl") as f:
             self.compute_shader = self.ctx.compute_shader(f.read())
@@ -133,6 +142,8 @@ class App(mglw.WindowConfig):
         self.program['u_swordDir'] = sword_dir
 
         self.program['u_time'] = time
+
+        self.program['u_enemiesPos'] = enemies
 
         self.texture0.use(location=0)
         self.texture1.use(location=1)
