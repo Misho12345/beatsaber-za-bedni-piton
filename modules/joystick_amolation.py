@@ -3,7 +3,8 @@ import serial.tools.list_ports
 # in command prompt, type "pip install pynput" to install pynput.
 from pynput.keyboard import Key, Controller
 import pyautogui
-
+import time
+import threading
 keyboard = Controller()
 sensytyvyty = 3
 port = serial.Serial()
@@ -34,7 +35,11 @@ def move(D, s):
 
 FB = 0
 EB = 0
-
+space ='0'
+AB ='0'
+BB ='0'
+CB ='0'
+DB ='0'
 
 def main():
     while True:
@@ -43,6 +48,20 @@ def main():
             # print(len(a))
             Final = a.split(',')
             final = list(Final)
+
+            global space
+            global AB
+            global BB
+            global CB
+            global DB
+
+            if final[2]=='0':
+                keyboard.release(" ")
+                # print(keyboard.pressed(" "))
+            elif final[2] == '1' and space=='0':
+                # keyboard.press(" ")
+                pass
+
             ux = final[0]
             uy = final[1]
             space = final[2]
@@ -63,10 +82,7 @@ def main():
             EB = final[8]
 
             # print(final)
-            if space == '1':
-                keyboard.press(" ")
-            else:
-                keyboard.release(" ")
+
             if AB == '1':
                 keyboard.press("w")
             else:
@@ -86,16 +102,20 @@ def main():
             x = int(ux)
             y = int(uy)
 
+            offset=512
             if y > 330:
-                move('left', (-(y - 330) / 100) * sensytyvyty)
+                move('left', (-(y - offset) / 100) * sensytyvyty)
             elif y < 330:
-                move('right', (-(y - 330) / 100) * sensytyvyty)
+                move('right', (-(y - offset) / 100) * sensytyvyty)
             if x > 330:
-                move('up', ((x - 335) / 100) * sensytyvyty)
+                move('up', ((x - offset) / 100) * sensytyvyty)
             elif x < 330:
-                move('down', ((x - 335) / 100) * sensytyvyty)
+                move('down', ((x - offset) / 100) * sensytyvyty)
             else:
                 move('.')
 
 
-main()
+
+x = threading.Thread(target=main, args=())
+x.start()
+

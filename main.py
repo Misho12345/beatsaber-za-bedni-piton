@@ -7,7 +7,7 @@ import struct
 
 import sys
 sys.path.append("modules")
-sword_plugged = False
+sword_plugged = True
 
 if sword_plugged:
     from modules.swordRotation import *
@@ -119,7 +119,7 @@ class App(mglw.WindowConfig):
 
         self.update_player_y(frame_time)
         if sword_plugged:
-            rotateSword(sword_dir)
+            rotateSword(sword_dir,cam_rot)
             # sword_rot[:]=rotateSword()
 
         self.mouse_move()
@@ -239,3 +239,5 @@ class App(mglw.WindowConfig):
 
 if __name__ == '__main__':
     mglw.run_window_config(App)
+
+startRotating()
