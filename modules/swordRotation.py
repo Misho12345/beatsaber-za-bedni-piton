@@ -1,8 +1,52 @@
 from serialRead import *
 from typing import List
 from math import *
-
+import threading
 a = 'Ax:+1.04Ay:-0.03Az:-0.23Gx:+0.00Gy:+0.00Gz:+0.00'
+
+import math
+
+
+class Vector3:
+    def __init__(self, x, y, z):
+        self.x = x
+        self.y = y
+        self.z = z
+
+
+def normalize_vector(vector):
+    magnitude = math.sqrt(vector.x ** 2 + vector.y ** 2 + vector.z ** 2)
+    return Vector3(vector.x / magnitude, vector.y / magnitude, vector.z / magnitude)
+
+
+def intersect_camera_with_sphere(camera_direction):
+    sphere_center = Vector3(0.0,0.0,0.0)
+    sphere_radius = 1
+    camera_direction = normalize_vector(camera_direction)
+    sphere_to_camera = Vector3(
+        camera_direction.x - sphere_center.x,
+        camera_direction.y - sphere_center.y,
+        camera_direction.z - sphere_center.z
+    )
+
+    a = camera_direction.x * camera_direction.x + camera_direction.y * camera_direction.y + camera_direction.z * camera_direction.z
+    b = 2 * (
+                sphere_to_camera.x * camera_direction.x + sphere_to_camera.y * camera_direction.y + sphere_to_camera.z * camera_direction.z)
+    c = sphere_to_camera.x * sphere_to_camera.x + sphere_to_camera.y * sphere_to_camera.y + sphere_to_camera.z * sphere_to_camera.z - sphere_radius * sphere_radius
+
+    discriminant = b * b - 4 * a * c
+    if discriminant < 0:
+        # No intersection
+        return None
+
+    t = (-b - math.sqrt(discriminant)) / (2 * a)
+    intersection_point = Vector3(
+        camera_direction.x * t + sphere_center.x,
+        camera_direction.y * t + sphere_center.y,
+        camera_direction.z * t + sphere_center.z
+    )
+
+    return intersection_point
 
 
 def get_orientation(sensor_data: List[float]):
@@ -119,7 +163,7 @@ def integrate_gyro_data(accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro_z, dt):
 #     intersection_z = vector_dir_z * intersection_mag
 #
 #     return intersection_x, intersection_y, intersection_z
-def rotateSword(sword_rot):
+def rotateSword(sword_rot,camera_rot):
     # sword_rot[0] = cos(time)
     # sword_rot[2] = sin(time)
     a = serialcomm.readline().decode('utf8', 'ignore')
@@ -130,6 +174,13 @@ def rotateSword(sword_rot):
         orientation = calculate_vector_coordinates(sensor_data[0], sensor_data[1], sensor_data[2], sensor_data[3],
                                                    sensor_data[4], sensor_data[5], 0.05)
         # print(orientation)
+
+        # cameraAngle = intersect_camera_with_sphere(camera_direction=camera_rot)
+        # orientation[0] +=cameraAngle.x
+        # orientation[1] +=cameraAngle.y
+        # orientation[2] +=cameraAngle.z
+
+
         sword_rot[:] = orientation
         # sword_rot[0]=orientation[0]
         # sword_rot[2]=orientation[1]
@@ -137,3 +188,6 @@ def rotateSword(sword_rot):
         # return orientation
     else:
         print(len(a), lenOfOutputStr)
+def startRotating():
+    x = threading.Thread(target=rotateSword, args=())
+    x.start()
