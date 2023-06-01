@@ -4,11 +4,10 @@ from screeninfo import get_monitors
 import win32api
 import numpy as np
 import struct
-from pyrr import Vector3
 
 import sys
 sys.path.append("modules")
-sword_plugged = True
+sword_plugged = False
 
 if sword_plugged:
     from modules.swordRotation import *
@@ -19,8 +18,8 @@ cam_rot = [0, 0]
 cam_pos = [0, 150, 0]
 prev_cam_pos = []
 
-sword_dir = [0, -1, 1]
-sword_pos = [-0.7, -1.5, -0.5]
+sword_dir = [-1, -1, 0]
+sword_pos = [0.5, -1.5, -0.7]
 
 SPEED = 1
 SENSITIVITY = 1.5
@@ -28,15 +27,8 @@ SENSITIVITY = 1.5
 monitor = get_monitors()[0]
 
 enemies = [
-    Vector3([0, 60, 0]),
-    Vector3([20, 60, 0]),
-    Vector3([40, 60, 0]),
-    Vector3([0, 60, 10]),
-    Vector3([20, 60, 10]),
-    Vector3([40, 60, 10]),
-    Vector3([0, 60, 20]),
-    Vector3([20, 60, 20]),
-    Vector3([40, 60, 20])
+    [100, 60, 0],
+    [110, 60, 0]
 ]
 
 
@@ -128,8 +120,11 @@ class App(mglw.WindowConfig):
 
         self.update_player_y(frame_time)
         if sword_plugged:
-            rotateSword(sword_dir,cam_rot)
+            rotateSword(sword_dir, cam_rot)
             # sword_rot[:]=rotateSword()
+        # else:
+        #     sword_dir[0] = cos(time)
+        #     sword_dir[2] = sin(time)
 
         self.mouse_move()
         self.player_move(frame_time)
@@ -208,7 +203,7 @@ class App(mglw.WindowConfig):
             cam_pos[2] += velocity[2] * SPEED * speed_factor * frame_time * 20
 
     def update_player_y(self, frame_time):
-        self.g_force += 5 * frame_time
+        self.g_force += 7 * frame_time
         self.g_velocity += self.g_force * frame_time
         cam_pos[1] -= self.g_velocity
 
@@ -251,4 +246,5 @@ class App(mglw.WindowConfig):
 if __name__ == '__main__':
     mglw.run_window_config(App)
 
-startRotating()
+if sword_plugged:
+    startRotating()

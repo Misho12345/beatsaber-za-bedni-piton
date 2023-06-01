@@ -8,20 +8,22 @@ Material materials[] = {
 
 
 Object swordSDF(in vec3 pos, in vec3 dir) {
-    dir = normalize(dir);
+//    return Object(MIN_DIST, materials[2]);
 
+    dir = normalize(dir);
+    vec3 angles = dir2angles(dir);
     float scale = 0.1;
     pos /= scale;
 
     vec3 hiltP = pos + 4.6 * dir;
-    rotate(hiltP, dir2angles(dir));
+    rotate(hiltP, angles);
 
     vec3 guardP = pos + 8.0 * dir;
-    rotate(guardP, dir2angles(dir));
+    rotate(guardP, angles);
     guardP.zx *= rotateMat(guardP.y / 10.0);
 
     vec3 bladeP = pos + 28.0 * dir;
-    rotate(bladeP, dir2angles(dir));
+    rotate(bladeP, angles);
     bladeP.yz *= rotateMat(bladeP.x / 10.0);
 
     float b1 = mix(0.0, 0.8, 1 - clamp01(bladeP.x / 27.0));
@@ -34,6 +36,7 @@ Object swordSDF(in vec3 pos, in vec3 dir) {
 
     Object res = smin(smin(hilt, sphereAndGuard, 0.3), blade, 0.7);
     res.dist *= scale;
+
     return res;
 }
 
@@ -59,27 +62,34 @@ Object amogusSDF(in vec3 pos) {
 
 Object sceneSDF(in vec3 pos, bool calcColor) {
     Object enemies = Object(MAX_DIST, materials[0]);
-    for (int i = 0; i < ENEMIES_COUNT; i++)
-        if (enemiesVisible[i])
-            enemies = min(enemies, amogusSDF(pos - u_enemiesPos[i]));
+    Object sword = Object(MAX_DIST, materials[0]);
 
-    return enemies;
+//    for (int i = 0; i < ENEMIES_COUNT; i++)
+//        if (enemiesVisible[i])
+//            enemies = min(enemies, amogusSDF(pos - u_enemiesPos[i]));
 
-    vec3 swordP = pos - u_camPos;
-    rotate(swordP, dir2angles(orientation));
-    swordP -= u_swordPos;
-    Object sword = swordSDF(swordP, u_swordDir);
+    if (swordVisible) {
+        vec3 swordP = pos - u_camPos;
+        swordP.zx *= rotateMat(u_camRot.x);
+        swordP -= u_swordPos;
+        sword = swordSDF(swordP, u_swordDir);
+    }
+
+//    return sword;
 
     if (!calcColor) {
-        float groundDist = mapH(pos);
-        return Object(min(sword.dist, groundDist), materials[0]);
+        float d = min(enemies.dist, sword.dist);
+        d = min(d, mapH(pos));
+        return Object(d, materials[0]);
     }
+
+//    return min(enemies, sword);
 
     vec2 groundDist = map(pos);
     Object ground = Object(groundDist.x, getMaterial(pos, groundDist));
 
-    return min(sword, ground);
-//    return min(min(sword, ground), enemies);
+    return min(ground, sword);
+    return min(min(enemies, sword), ground);
 
     float t = u_time;
 }

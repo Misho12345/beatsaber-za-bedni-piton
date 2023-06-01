@@ -10,11 +10,12 @@ uniform vec2 u_camRot;
 
 uniform vec3 u_swordPos;
 uniform vec3 u_swordDir;
+bool swordVisible;
 
 uniform sampler2D u_texture0;
 uniform sampler2D u_texture1;
 
-#define ENEMIES_COUNT 9
+#define ENEMIES_COUNT 2
 uniform vec3 u_enemiesPos[ENEMIES_COUNT];
 bool enemiesVisible[ENEMIES_COUNT];
 
@@ -29,23 +30,10 @@ bool enemiesVisible[ENEMIES_COUNT];
 #define FOV tan(radians(50.0))
 #define EPS 0.001
 
-vec3 orientation = vec3(0.0);
-
 #include common.glsl
 #include terrain.glsl
 #include scene.glsl
 #include lighting.glsl
-
-vec3 dome(in vec3 rd, in vec3 light1) {
-    float sda = clamp01(0.5 + 0.5 * dot(rd, light1));
-    float cho = max(rd.y, 0.0);
-
-    vec3 bgcol = mix(mix(vec3(0.0, 0.28, 0.42), vec3(0.8, 0.7, 0.2), pow(1.0 - cho, 7.0 - 4.0 * sda)),
-    vec3(0.43 + 0.2 * sda, 0.4 - 0.1 * sda, 0.4 - 0.25 * sda), pow(1.0 - cho, 18.0 - 8.0 * sda));
-
-    bgcol *= 0.8 + 0.2 * sda;
-    return bgcol * 0.75;
-}
 
 vec3 raymarch(in vec3 rayOrigin, in vec3 rayDir) {
     vec3 lightPos = normalize(vec3(-0.4, 1.1, 0.5));
@@ -70,7 +58,7 @@ vec3 raymarch(in vec3 rayOrigin, in vec3 rayDir) {
 
         // clouds
         vec2 sc = rayOrigin.xz + rayDir.xz * (1000.0 - rayOrigin.y) / rayDir.y;
-        col = mix(col, 0.25 * vec3(0.5, 0.9, 1.0), 0.4 * smoothstep(0.0, 1.0, texture(u_texture0, 5e-6 * sc).x));
+        col = mix(col, 0.25 * vec3(0.5, 0.9, 1.0), 0.4 * texture(u_texture0, 5e-6 * sc).x);
 
         // sun scatter
         col += vec3(0.06, 0.035, 0.016) * pow(sundotc, 4.0);
@@ -80,7 +68,7 @@ vec3 raymarch(in vec3 rayOrigin, in vec3 rayDir) {
 
         col = mix(col, 0.25 * mix(vec3(0.4, 0.75, 1.0), vec3(0.3, 0.3, 0.3), sundotc * sundotc), 1.0 - exp(-8e-7 * totalDist * totalDist));
         col += 0.15 * vec3(1.0, 0.8, 0.3) * pow(sundotc, 8.0) * (1.0 - exp(-0.003 * totalDist));
-        col = mix(col, bgcol, 1.0 - exp(-0.00000004 * totalDist * totalDist));
+        col = mix(col, bgcol, 1.0 - exp(-4e-8 * totalDist * totalDist));
     }
 
     col = pow(col, vec3(0.45));
@@ -106,21 +94,6 @@ mat3 getCam() {
     return mat3(camR, camU, camF);
 }
 
-bool intersectBox(vec3 rayOrigin, vec3 rayDir, vec3 boxMin, vec3 boxMax) {
-    vec3 invRayDir = 1.0 / rayDir;
-
-    vec3 tmin = (boxMin - rayOrigin) * invRayDir;
-    vec3 tmax = (boxMax - rayOrigin) * invRayDir;
-
-    vec3 realMin = min(tmin, tmax);
-    vec3 realMax = max(tmin, tmax);
-
-    float t0 = max(max(realMin.x, realMin.y), realMin.z);
-    float t1 = min(min(realMax.x, realMax.y), realMax.z);
-
-    return t1 >= t0 && t1 >= 0.0;
-}
-
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy * 2.0 - 1.0;
     uv.x *= u_resolution.x / u_resolution.y;
@@ -129,13 +102,21 @@ void main() {
     vec3 rayDir = cam * normalize(vec3(uv, FOV));
 	vec3 rayOrigin = u_camPos;
 
-    orientation = cam.xyz;
-
     for (int i = 0; i < ENEMIES_COUNT; i++) {
         vec3 pos = u_enemiesPos[i] + vec3(0, 2.0, 0.5);
-        vec3 halfSize = vec3(4, 6.5, 5);
-        enemiesVisible[i] = intersectBox(rayOrigin, rayDir, pos - halfSize, pos + halfSize);
+        enemiesVisible[i] = intersectBox(rayOrigin, rayDir, pos, vec3(8, 13, 10));
     }
+
+//    vec3 swordP = u_swordPos - u_swordDir * 0.1;
+//    swordP.xz *= rotateMat(u_camRot.x);
+//    swordP += u_camPos;
+//
+//    vec3 angles = dir2angles(u_swordDir);
+//    angles.xz *= rotateMat(u_camRot.x);
+////    swordVisible = intersectRotatedBox(rayOrigin, rayDir, swordP, vec3(2, 0.6, 0.6), angles);
+//    swordVisible = intersectRotatedBox(rayOrigin, rayDir, swordP, vec3(0.6, 0.1, 0.1), angles + vec3(sin(u_camRot.x), 0, 0));
+
+    swordVisible = true;
 
 	vec3 color = raymarch(rayOrigin, rayDir);
 	fragColor = vec4(color, 1.0);
