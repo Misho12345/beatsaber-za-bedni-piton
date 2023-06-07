@@ -1,3 +1,14 @@
+vec3 dome(in vec3 rd, in vec3 light1) {
+    float sda = clamp01(0.5 + 0.5 * dot(rd, light1));
+    float cho = max(rd.y, 0.0);
+
+    vec3 bgcol = mix(mix(vec3(0.0, 0.28, 0.42), vec3(0.8, 0.7, 0.2), pow(1.0 - cho, 7.0 - 4.0 * sda)),
+    vec3(0.43 + 0.2 * sda, 0.4 - 0.1 * sda, 0.4 - 0.25 * sda), pow(1.0 - cho, 18.0 - 8.0 * sda));
+
+    bgcol *= 0.8 + 0.2 * sda;
+    return bgcol * 0.75;
+}
+
 vec3 normal(in vec3 pos) {
    	vec2 e = vec2(EPS, 0.0);
     return normalize(vec3(

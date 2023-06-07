@@ -40,12 +40,10 @@ float terrainHigh(in vec3 p) {
 }
 
 vec2 map(in vec3 pos) {
-    float m = 0.0;
     float h = pos.y - terrainMed(pos.xz);
 
     float w = 0.5 + h / 100;
-    m = mix(m, 1.0, w) - w * (1.0 - w);
-    return vec2(h * 0.5, clamp01(m));
+    return vec2(h * 0.5, clamp01(w * w));
 }
 
 float mapH(in vec3 pos) {

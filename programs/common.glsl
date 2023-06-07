@@ -110,10 +110,31 @@ mat2 rotateMat(float a) {
     return mat2(c, -s, s, c);
 }
 
-vec3 rotate(inout vec3 p, in vec3 a) {
+void rotate(inout vec3 p, in vec3 a) {
 	p.yz *= rotateMat(a.x);
     p.zx *= rotateMat(a.y);
     p.xy *= rotateMat(a.z);
+}
 
-	return p;
+bool intersectBox(vec3 rayOrigin, vec3 rayDir, vec3 boxCenter, vec3 boxSize) {
+    vec3 localRayOrigin = boxCenter - rayOrigin;
+    vec3 halfBoxSize = boxSize * 0.5;
+
+    vec3 invRayDir = 1.0 / rayDir;
+
+    vec3 tmin = (localRayOrigin - halfBoxSize) * invRayDir;
+    vec3 tmax = (localRayOrigin + halfBoxSize) * invRayDir;
+
+    vec3 realMin = min(tmin, tmax);
+    vec3 realMax = max(tmin, tmax);
+
+    float t0 = max(max(realMin.x, realMin.y), realMin.z);
+    float t1 = min(min(realMax.x, realMax.y), realMax.z);
+
+    return t1 >= t0 && t1 >= 0.0;
+}
+
+bool intersectRotatedBox(vec3 rayOrigin, vec3 rayDir, vec3 boxCenter, vec3 boxSize, vec3 angles) {
+    rotate(rayDir, angles);
+    return intersectBox(rayOrigin, rayDir, boxCenter, boxSize);
 }
