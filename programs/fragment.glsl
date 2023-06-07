@@ -1,8 +1,8 @@
-#version 450 core
+#version 430 core
 
 layout (location = 0) out vec4 fragColor;
 
-uniform float u_time;
+//uniform float u_time;
 uniform vec2 u_resolution;
 
 uniform vec3 u_camPos;
@@ -10,13 +10,13 @@ uniform vec2 u_camRot;
 
 uniform vec3 u_swordPos;
 uniform vec3 u_swordDir;
-bool swordVisible;
 
 uniform sampler2D u_texture0;
 uniform sampler2D u_texture1;
 
-#define ENEMIES_COUNT 2
+#define ENEMIES_COUNT 9
 uniform vec3 u_enemiesPos[ENEMIES_COUNT];
+uniform vec3 u_enemiesDir[ENEMIES_COUNT];
 bool enemiesVisible[ENEMIES_COUNT];
 
 #define MAX_MARCH_STEPS 200.0
@@ -104,19 +104,8 @@ void main() {
 
     for (int i = 0; i < ENEMIES_COUNT; i++) {
         vec3 pos = u_enemiesPos[i] + vec3(0, 2.0, 0.5);
-        enemiesVisible[i] = intersectBox(rayOrigin, rayDir, pos, vec3(8, 13, 10));
+        enemiesVisible[i] = intersectBox(rayOrigin, rayDir, pos, vec3(13.0));
     }
-
-//    vec3 swordP = u_swordPos - u_swordDir * 0.1;
-//    swordP.xz *= rotateMat(u_camRot.x);
-//    swordP += u_camPos;
-//
-//    vec3 angles = dir2angles(u_swordDir);
-//    angles.xz *= rotateMat(u_camRot.x);
-////    swordVisible = intersectRotatedBox(rayOrigin, rayDir, swordP, vec3(2, 0.6, 0.6), angles);
-//    swordVisible = intersectRotatedBox(rayOrigin, rayDir, swordP, vec3(0.6, 0.1, 0.1), angles + vec3(sin(u_camRot.x), 0, 0));
-
-    swordVisible = true;
 
 	vec3 color = raymarch(rayOrigin, rayDir);
 	fragColor = vec4(color, 1.0);

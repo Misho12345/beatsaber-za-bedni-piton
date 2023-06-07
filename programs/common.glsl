@@ -42,7 +42,7 @@ float capsuleSDF(vec3 p, float h, float r) {
     return length(max(pa, 0.0)) + min(max(pa.x, max(pa.y, pa.z)), 0.0) - r;
 }
 
-Material mix(in Material m1, in Material m2, float k) {
+Material mixM(in Material m1, in Material m2, float k) {
 	return Material(
 		mix(m1.albedo, m2.albedo, k),
 		mix(m1.specular, m2.specular, k)
@@ -66,33 +66,33 @@ float diff(float a, float b) {
     return max(a, -b);
 }
 
-Object min(in Object obj1, in Object obj2) {
+Object minO(in Object obj1, in Object obj2) {
 	return (obj1.dist < obj2.dist) ? obj1 : obj2;
 }
 
-Object max(in Object obj1, in Object obj2) {
+Object maxO(in Object obj1, in Object obj2) {
 	return (obj1.dist > obj2.dist) ? obj1 : obj2;
 }
 
-Object diff(in Object obj1, in Object obj2) {
+Object diffO(in Object obj1, in Object obj2) {
 	return (obj1.dist > -obj2.dist) ? obj1 : Object(-obj2.dist, obj2.mat);
 }
 
-Object smin(in Object obj1, in Object obj2, float k) {
+Object sminO(in Object obj1, in Object obj2, float k) {
 	float dist = smin(obj1.dist, obj2.dist, k);
-	Material mat = mix(obj1.mat, obj2.mat, smoothstep(obj1.dist, -obj2.dist, 0.0));
+	Material mat = mixM(obj1.mat, obj2.mat, smoothstep(obj1.dist, -obj2.dist, 0.0));
 	return Object(dist, mat);
 }
 
-Object smax(in Object obj1, in Object obj2, float k) {
+Object smaxO(in Object obj1, in Object obj2, float k) {
 	float dist = smax(obj1.dist, obj2.dist, k);
-	Material mat = mix(obj1.mat, obj2.mat, smoothstep(obj1.dist, -obj2.dist, 0.0));
+	Material mat = mixM(obj1.mat, obj2.mat, smoothstep(obj1.dist, -obj2.dist, 0.0));
 	return Object(dist, mat);
 }
 
-Object sdiff(in Object obj1, in Object obj2, float k) {
+Object sdiffO(in Object obj1, in Object obj2, float k) {
 	float dist = sdiff(obj1.dist, obj2.dist, k);
-	Material mat = mix(obj1.mat, obj2.mat, smoothstep(obj1.dist, obj2.dist, 0.0));
+	Material mat = mixM(obj1.mat, obj2.mat, smoothstep(obj1.dist, obj2.dist, 0.0));
 	return Object(dist, mat);
 }
 
