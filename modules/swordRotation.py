@@ -5,7 +5,36 @@ import threading
 a = 'Ax:+1.04Ay:-0.03Az:-0.23Gx:+0.00Gy:+0.00Gz:+0.00'
 
 import math
+import time
+swordWorking = True
+import serial
 
+# # Create a serial object
+# ser = serial.Serial('COM5', 115200)  # Replace 'COM1' with the appropriate port
+#
+#
+# # Function to read a complete string
+# def read_complete_string():
+#     message = ''
+#     while True:
+#         char = ser.read().decode()  # Read a single character
+#         if char == '\n':  # Assuming the string ends with a newline character
+#             break
+#         message += char
+#     return message
+#
+#
+# # Main program
+# buffer = ''
+# while True:
+#     buffer += read_complete_string()
+#
+#     # Process complete strings in the buffer
+#     while '\n' in buffer:
+#         index = buffer.index('\n')
+#         string = buffer[:index + 1]
+#         buffer = buffer[index + 1:]
+#         print(string)
 
 # class Vector3:
 #     def __init__(self, x, y, z):
@@ -163,16 +192,18 @@ def integrate_gyro_data(accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro_z, dt):
 #     intersection_z = vector_dir_z * intersection_mag
 #
 #     return intersection_x, intersection_y, intersection_z
+# 0521,0512,0,0,0,0,0,0,0,+0.16,-0.68,-0.90,-0.01,-0.03,+0.00
 def rotateSword(sword_rot,camera_rot):
     # sword_rot[0] = cos(time)
     # sword_rot[2] = sin(time)
-    a = serialcomm.readline().decode('utf8', 'ignore')
-    if len(a) == lenOfOutputStr:
-        b = decodeInfo(a)
+    serialOutput = serialcomm.readline().decode('utf8', 'ignore')
+    if(len(serialOutput)==lenOfOutputStr):
+        # print(serialOutput)
+        b = decodeInfo(serialOutput)
         # print(b, a+'G')
         sensor_data = b  # example sensor data
-        orientation = calculate_vector_coordinates(sensor_data[0], sensor_data[1], sensor_data[2], sensor_data[3],
-                                                   sensor_data[4], sensor_data[5], 0.05)
+        orientation = calculate_vector_coordinates(sensor_data[9], sensor_data[10], sensor_data[11], sensor_data[12],
+                                                   sensor_data[13], sensor_data[14], 0.05)
         # print(orientation)
 
         # cameraAngle = intersect_camera_with_sphere(camera_direction=camera_rot)
@@ -181,13 +212,14 @@ def rotateSword(sword_rot,camera_rot):
         # orientation[2] +=cameraAngle.z
 
 
-        sword_rot[:] = orientation
-        # sword_rot[0]=orientation[0]
-        # sword_rot[2]=orientation[1]
-        # sword_rot[1]=orientation[2]
+        # sword_rot[:] = orientation
+        sword_rot[0]=orientation[0]
+        sword_rot[2]=orientation[1]
+        sword_rot[1]=orientation[2]
         # return orientation
     else:
-        print(len(a), lenOfOutputStr)
+        # print(len(serialOutput), serialOutput)
+        pass
 def startRotating():
     x = threading.Thread(target=rotateSword, args=())
     x.start()

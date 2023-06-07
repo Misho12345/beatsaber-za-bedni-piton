@@ -23,6 +23,9 @@ int LEFT;
 int RIGHT;
 int SPACE;
 
+#include <basicMPU6050.h> 
+basicMPU6050<> imu;
+
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
@@ -42,9 +45,14 @@ void setup() {
   
   pinMode(BUTTON_D, INPUT);
   digitalWrite(BUTTON_D, HIGH);
+  
+  imu.setup();
+  imu.setBias();
 }
 
 void loop() {
+  delay(100);
+  char string[100];
   // put your main code here, to run repeatedly:
   X = analogRead(x);
   Y = analogRead(y);
@@ -85,9 +93,15 @@ void loop() {
      D =0;
   }
   
+  if(X<10){Serial.print("000");}else 
+  if(X<100){Serial.print("00");}else 
+  if(X<1000){Serial.print("0");}
   Serial.print(X);
   Serial.print(",");
-  Serial.print(Y); 
+  if(Y<10){Serial.print("000");}else 
+  if(Y<100){Serial.print("00");}else 
+  if(Y<1000){Serial.print("0");}
+  Serial.print(Y);
   Serial.print(",");
   Serial.print(SPACE);
   Serial.print(",");
@@ -102,7 +116,91 @@ void loop() {
   Serial.print(LEFT);
   Serial.print(",");
   Serial.print(RIGHT);
-  Serial.print(",");
-  Serial.println("0");
+//  Serial.print(",");
   
-}
+//  Serial.print("Ax:+1.04,");
+//  
+//  Serial.print("Ay:-0.03,");
+//  
+//  Serial.print("Az:-0.23,");
+//  
+//  Serial.print("Gx:+0.00,");
+//  
+//  Serial.print("Gy:+0.00,");
+//  
+//  Serial.print("Gz:+0.00,");
+  // Update gyro calibration 
+  imu.updateBias();
+  
+  //-- Scaled and calibrated output:
+  // Accel
+  
+//  Serial.print( "Ax:" );
+//  if(imu.ax()>0.00){Serial.print("+");}
+//  Serial.print( imu.ax() );
+  Serial.print( "," );
+  if(fabs(imu.ax())<0.01){
+    Serial.print("+0.00");
+  }else{
+    if(imu.ax()>0.00){Serial.print("+");}
+    Serial.print( imu.ax() );
+  }
+  
+//  Serial.print( "Ay:" );
+//  if(imu.ay()>0.00){Serial.print("+");}
+//  Serial.print( imu.ay() );
+  Serial.print( "," );
+  if(fabs(imu.ay())<0.01){
+    Serial.print("+0.00");
+  }else{
+    if(imu.ay()>0.00){Serial.print("+");}
+    Serial.print( imu.ay() );
+  }
+  
+//  Serial.print( "Az:" );
+//  if(imu.az()>0.00){Serial.print("+");}
+//  Serial.print( imu.az() );
+  Serial.print( "," );
+  if(fabs(imu.az())<0.01){
+    Serial.print("+0.00");
+  }else{
+    if(imu.az()>0.00){Serial.print("+");}
+    Serial.print( imu.az() );
+  }
+  
+  Serial.print( "," );
+  if(fabs(imu.gx())<0.01){
+    Serial.print("+0.00");
+  }else{
+    if(imu.gx()>0.00){Serial.print("+");}
+    Serial.print( imu.gx() );
+  }
+
+  Serial.print( "," );
+  if(fabs(imu.gy())<0.01){
+    Serial.print("+0.00");
+  }else{
+    if(imu.gy()>0.00){Serial.print("+");}
+    Serial.print( imu.gy() );
+  }
+
+  Serial.print( "," );
+  if(fabs(imu.gz())<0.01){
+    Serial.print("+0.00");
+  }else{
+    if(imu.gz()>0.00){Serial.print("+");}
+    Serial.print( imu.gz() );
+  }
+  
+//  Serial.print( "Gy:" );
+//  if(imu.gy()>0.00){Serial.print("+");}
+//  Serial.print( imu.gy() );
+//  
+//  Serial.print( "Gz:" );
+//  if(imu.gz()>0.00){Serial.print("+");}
+//  Serial.print( imu.gz() );
+
+  
+  Serial.println(",0");
+  
+}\

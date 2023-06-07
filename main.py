@@ -8,10 +8,12 @@ from pyrr import Vector3
 
 import sys
 sys.path.append("modules")
-sword_plugged = True
+sword_plugged = False
 
 if sword_plugged:
     from modules.swordRotation import *
+    from modules.joystick_amolation import *
+    # import threading
 else:
     from math import *
 
@@ -119,6 +121,9 @@ class App(mglw.WindowConfig):
         self.ground_normal = []
 
     def render(self, time, frame_time):
+        # serialOutput = serialcomm.readline().decode('utf8', 'ignore')
+        # print(serialOutput)
+
         if prev_cam_pos != cam_pos:
             prev_cam_pos.clear()
             prev_cam_pos.extend(cam_pos)
@@ -128,8 +133,32 @@ class App(mglw.WindowConfig):
 
         self.update_player_y(frame_time)
         if sword_plugged:
+            # serialOutput = serialcomm.readline().decode('utf8', 'ignore')
             rotateSword(sword_dir,cam_rot)
             # sword_rot[:]=rotateSword()
+            outFromJoystick = runJoystick()
+            if outFromJoystick != -1:
+                if (outFromJoystick[1] == 1):
+                    self.s_pressed = True
+                else:
+                    self.s_pressed = False
+                    # print(outFromJoystick[0])
+                if (outFromJoystick[2] == 1):
+                    self.a_pressed = True
+                else:
+                    self.a_pressed = False
+                if (outFromJoystick[3] == 1):
+                    self.w_pressed = True
+                else:
+                    self.w_pressed = False
+                if (outFromJoystick[4] == 1):
+                    self.d_pressed = True
+                else:
+                    self.d_pressed = False
+                if (outFromJoystick[0] == 1):
+                    self.space_pressed = True
+                else:
+                    self.space_pressed = False
 
         self.mouse_move()
         self.player_move(frame_time)
@@ -189,7 +218,7 @@ class App(mglw.WindowConfig):
             velocity[2] += 1
 
         if self.space_pressed and self.on_ground:
-            self.g_velocity = -1
+            self.g_velocity = -2
 
         if velocity != [0, 0, 0]:
             forward = normalize([cos(cam_rot[0]), 0, sin(cam_rot[0])])
@@ -251,4 +280,4 @@ class App(mglw.WindowConfig):
 if __name__ == '__main__':
     mglw.run_window_config(App)
 
-startRotating()
+# startRotating()

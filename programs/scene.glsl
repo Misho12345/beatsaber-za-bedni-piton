@@ -71,14 +71,14 @@ Object sceneSDF(in vec3 pos, bool calcColor) {
 //        Object newCube = Object(boxSDF(u_enemyPos[i], vec3(1)), materials[0]);
 //        enemies = min(newCube, enemies);
 //    }
-    return enemies;
+//    return enemies;
 
     vec3 swordP = pos - u_camPos;
     rotate(swordP, dir2angles(orientation));
     swordP -= u_swordPos;
     Object sword = swordSDF(swordP, u_swordDir);
 
-    return min(enemies, sword);
+    //return min(enemies, sword);
 
     if (!calcColor) {
         float groundDist = mapH(pos);
