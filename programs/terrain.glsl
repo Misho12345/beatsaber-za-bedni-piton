@@ -16,18 +16,24 @@ float terrainSDF(in vec2 p, int iterations) {
 
         p = 0.97 * m * p + (t - 0.5) * 0.2;
     }
-
     return t;
 }
 
 
-float terrainMed(in vec2 p) {
-    return terrainSDF(p, 6) * 55.0;
+float terrainMed(in vec3 p) {
+    float t = terrainSDF(p.xz, 6);
+    float dist = length(p - u_camPos);
+    if (dist < 200.0) {
+        float rockT = texture(u_texture0, 0.03 * p.xz).x;
+        float grassT = texture(u_texture1, 0.03 * p.xz).x;
+
+        t -= mix(rockT, grassT, t / 95.0) * (1.0 - dist / 200.0) / 500.0;
+    }
+    return t * 55.0;
 }
 
 float terrainHigh(in vec3 p) {
     float t = terrainSDF(p.xz, 6);
-
     float dist = length(p - u_camPos);
     if (dist < 200.0) {
         float rockT = texture(u_texture0, 0.03 * p.xz).x;
@@ -35,12 +41,11 @@ float terrainHigh(in vec3 p) {
 
         t -= mix(rockT, grassT, t / 95.0) * (1.0 - dist / 200.0) / 25.0;
     }
-
     return t * 55.0;
 }
 
 vec2 map(in vec3 pos) {
-    float h = pos.y - terrainMed(pos.xz);
+    float h = pos.y - terrainMed(pos);
 
     float w = 0.5 + h / 100;
     return vec2(h * 0.5, clamp01(w * w));
@@ -66,7 +71,7 @@ Material getMaterial(in vec3 pos, in vec2 res) {
     col = mix(col, col2, 0.5 * res.y);
 
     // grass
-    float s = smoothstep(0.15, 0.25, mix(
+    float s = smoothstep(0.05, 0.15, mix(
         textureLod(u_texture0, 1e-4 * pos.zx / (fdist + 1), fdist).x,
         textureLod(u_texture0, 1e-4 * pos.zx / (fdist + 2), fdist + 1).x, k));
 
@@ -76,7 +81,6 @@ Material getMaterial(in vec3 pos, in vec2 res) {
         textureLod(u_texture1, 3e-5 * pos.xz / (fdist + 2), fdist + 1).x, k) * 1.9;
 
     float l = clamp01(pos.y * s / 70.0);
-    if (pos.y > 70) l = 1.0;
 
     col = mix(gcol, col, l);
     col *= mix(

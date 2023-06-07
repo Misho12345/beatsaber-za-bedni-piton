@@ -1,15 +1,14 @@
 Material materials[] = {
 	Material(vec3(0.8, 0.8, 0.8), 0.5),  // default white
-	Material(vec3(0.2, 0.2, 0.2), 0.5),  // gray (sword hilt)
-	Material(vec3(0.2, 0.1, 0.07), 0.5), // brown (sword guard and ball)
-	Material(vec3(0.8, 0.2, 0.2), 0.5),  // red (sword blade and amogus' color)
+	Material(vec3(0.3, 0.3, 0.3), 0.5),  // gray (sword hilt)
+	Material(vec3(0.25, 0.15, 0.1), 0.5), // brown (sword guard and ball)
+	Material(vec3(0.6, 0.4, 0.2), 0.5),  // blue (sword blade)
+	Material(vec3(0.8, 0.2, 0.2), 0.5),  // red (amogus color)
 	Material(vec3(0.3, 0.6, 1.0), 0.5)   // light blue (eyes)
 };
 
 
 Object swordSDF(in vec3 pos, in vec3 dir) {
-//    return Object(MIN_DIST, materials[2]);
-
     dir = normalize(dir);
     vec3 angles = dir2angles(dir);
     float scale = 0.1;
@@ -34,13 +33,18 @@ Object swordSDF(in vec3 pos, in vec3 dir) {
     Object sphereAndGuard = Object(min(sphereSDF(pos, 1.4), cylinderSDF(guardP, 3.0, 0.45)), materials[2]);
     Object blade = Object(boxSDF(bladeP, vec3(20, b, b)), materials[3]);
 
-    Object res = smin(smin(hilt, sphereAndGuard, 0.3), blade, 0.7);
+    Object res = sminO(sminO(hilt, sphereAndGuard, 0.3), blade, 0.7);
     res.dist *= scale;
 
     return res;
 }
 
-Object amogusSDF(in vec3 pos) {
+Object amogusSDF(in vec3 pos, in vec3 dir) {
+    float scale = 0.8;
+    pos /= scale;
+
+    rotate(pos, dir2angles(dir));
+
     float leg1Dist = capsuleSDF(pos - vec3(-1.7, 0, -0.5), 2.3, 1);
     float leg2Dist = capsuleSDF(pos - vec3(1.7, 0, -0.5), 2.3, 1);
     float bodyDist = capsuleSDF(pos - vec3(0, 4, 0), 1.5, 3);
@@ -54,28 +58,27 @@ Object amogusSDF(in vec3 pos) {
     b = smin(b, bodyDist, 0.7);
     b = smin(b, backpackDist, 0.4);
 
-    Object body = Object(b, materials[3]);
-    Object eyes = Object(eyesDist, materials[4]);
+    Object body = Object(b, materials[4]);
+    Object eyes = Object(eyesDist, materials[5]);
 
-    return smin(body, eyes, 0.1);
+    Object res = sminO(body, eyes, 0.1);
+    res.dist *= scale;
+
+    return res;
 }
 
 Object sceneSDF(in vec3 pos, bool calcColor) {
     Object enemies = Object(MAX_DIST, materials[0]);
     Object sword = Object(MAX_DIST, materials[0]);
 
-//    for (int i = 0; i < ENEMIES_COUNT; i++)
-//        if (enemiesVisible[i])
-//            enemies = min(enemies, amogusSDF(pos - u_enemiesPos[i]));
+    for (int i = 0; i < ENEMIES_COUNT; i++)
+        if (enemiesVisible[i])
+            enemies = minO(enemies, amogusSDF(pos - u_enemiesPos[i], u_enemiesDir[i]));
 
-    if (swordVisible) {
-        vec3 swordP = pos - u_camPos;
-        swordP.zx *= rotateMat(u_camRot.x);
-        swordP -= u_swordPos;
-        sword = swordSDF(swordP, u_swordDir);
-    }
-
-//    return sword;
+    vec3 swordP = pos - u_camPos;
+    swordP.zx *= rotateMat(u_camRot.x);
+    swordP -= u_swordPos;
+    sword = swordSDF(swordP, u_swordDir);
 
     if (!calcColor) {
         float d = min(enemies.dist, sword.dist);
@@ -83,13 +86,8 @@ Object sceneSDF(in vec3 pos, bool calcColor) {
         return Object(d, materials[0]);
     }
 
-//    return min(enemies, sword);
-
     vec2 groundDist = map(pos);
     Object ground = Object(groundDist.x, getMaterial(pos, groundDist));
 
-    return min(ground, sword);
-    return min(min(enemies, sword), ground);
-
-    float t = u_time;
+    return minO(minO(enemies, sword), ground);
 }

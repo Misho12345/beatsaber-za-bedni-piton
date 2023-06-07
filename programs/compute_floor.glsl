@@ -1,4 +1,4 @@
-#version 450
+#version 430 core
 
 layout(std430, binding = 0) buffer InputBuffer  { vec2  inputBuffer[];  };
 layout(std430, binding = 1) buffer HeightBuffer { float heightBuffer[]; };

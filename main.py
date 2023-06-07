@@ -26,10 +26,19 @@ SENSITIVITY = 1.5
 
 monitor = get_monitors()[0]
 
-enemies = [
-    [100, 60, 0],
-    [110, 60, 0]
+enemiesPos = [
+    [100, 100, 0],
+    [120, 100, 0],
+    [140, 100, 0],
+    [100, 100, 20],
+    [120, 100, 20],
+    [140, 100, 20],
+    [100, 100, 40],
+    [120, 100, 40],
+    [140, 100, 40],
 ]
+
+enemiesDir = [[] for _ in range(9)]
 
 
 def add(v1: list, v2: list) -> list:
@@ -56,7 +65,7 @@ def dot(vec1, vec2):
 
 class App(mglw.WindowConfig):
     title = "Ray Marching"
-    cursor = False
+    # cursor = False
     fullscreen = True
     window_size = monitor.width, monitor.height
     resource_dir = 'programs'
@@ -90,8 +99,6 @@ class App(mglw.WindowConfig):
 
         self.program['u_resolution'] = self.window_size
 
-        self.program['u_enemiesPos'] = enemies
-
         with open("programs/compute_floor.glsl") as f:
             self.compute_shader = self.ctx.compute_shader(f.read())
 
@@ -110,10 +117,22 @@ class App(mglw.WindowConfig):
         self.ground_height = 0
         self.ground_normal = []
 
+        cam_pos_backup = cam_pos.copy()
+        for i in range(len(enemiesPos)):
+            cam_pos[::2] = enemiesPos[i][::2]
+            self.get_ground_height()
+            enemiesPos[i][1] = self.ground_height - 3
+
+            enemiesDir[i][:] = self.ground_normal
+            enemiesDir[i][0], enemiesDir[i][1] = -enemiesDir[i][1], enemiesDir[i][0]
+
+        cam_pos[:] = cam_pos_backup
+        self.program['u_enemiesPos'] = enemiesPos
+        self.program['u_enemiesDir'] = enemiesDir
+
     def render(self, time, frame_time):
         if prev_cam_pos != cam_pos:
-            prev_cam_pos.clear()
-            prev_cam_pos.extend(cam_pos)
+            prev_cam_pos[:] = cam_pos
 
             self.get_ground_height()
             cam_pos[1] = max(cam_pos[1], self.ground_height)
@@ -122,11 +141,9 @@ class App(mglw.WindowConfig):
         if sword_plugged:
             rotateSword(sword_dir, cam_rot)
             # sword_rot[:]=rotateSword()
-        # else:
-        #     sword_dir[0] = cos(time)
-        #     sword_dir[2] = sin(time)
 
         self.mouse_move()
+
         self.player_move(frame_time)
 
         self.ctx.clear()
@@ -136,9 +153,10 @@ class App(mglw.WindowConfig):
         self.program['u_swordPos'] = sword_pos
         self.program['u_swordDir'] = sword_dir
 
-        self.program['u_time'] = time
+        # self.program['u_time'] = time
 
-        self.program['u_enemiesPos'] = enemies
+        self.program['u_enemiesPos'] = enemiesPos
+        self.program['u_enemiesDir'] = enemiesDir
 
         self.texture0.use(location=0)
         self.texture1.use(location=1)
@@ -152,8 +170,7 @@ class App(mglw.WindowConfig):
         self.compute_shader.run(1, 1, 1)
 
         self.ground_height = struct.unpack('<f', self.height_buffer.read())[0] + 5
-        self.ground_normal.clear()
-        self.ground_normal.extend(struct.unpack('<3f', self.normal_buffer.read()))
+        self.ground_normal[:] = struct.unpack('<3f', self.normal_buffer.read())
 
     def mouse_move(self):
         cursor = win32api.GetCursorPos()
