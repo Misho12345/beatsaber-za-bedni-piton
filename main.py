@@ -11,7 +11,6 @@ sword_plugged = True
 
 if sword_plugged:
     from modules.swordRotation import *
-    from modules.joystick_amolation import *
 else:
     from math import *
 
@@ -28,15 +27,15 @@ SENSITIVITY = 1.5
 monitor = get_monitors()[0]
 
 enemiesPos = [
-    # [100, 100, 0],
-    # [120, 100, 0],
-    # [140, 100, 0],
-    # [100, 100, 20],
-    # [120, 100, 20],
-    # [140, 100, 20],
-    # [100, 100, 40],
-    # [120, 100, 40],
-    # [140, 100, 40],
+    [100, 100, 100],
+    [140, 100, 100],
+    [160, 100, 100],
+    [100, 100, 140],
+    [140, 100, 140],
+    [160, 100, 140],
+    [100, 100, 160],
+    [140, 100, 160],
+    [160, 100, 160],
 ]
 
 enemiesDir = [[] for _ in range(len(enemiesPos))]
@@ -131,13 +130,9 @@ class App(mglw.WindowConfig):
         self.program['u_enemiesPos'] = enemiesPos
         self.program['u_enemiesDir'] = enemiesDir
 
-        # if sword_plugged:
-        #     startRotating()
-
     def render(self, time, frame_time):
         if prev_cam_pos != cam_pos:
-            prev_cam_pos.clear()
-            prev_cam_pos.extend(cam_pos)
+            prev_cam_pos[:] = cam_pos
 
             self.get_ground_height()
             cam_pos[1] = max(cam_pos[1], self.ground_height)
@@ -146,31 +141,9 @@ class App(mglw.WindowConfig):
         if sword_plugged:
             rotateSword(sword_dir, cam_rot)
             # sword_rot[:]=rotateSword()
-            outFromJoystick = runJoystick()
-            if outFromJoystick != -1:
-                if (outFromJoystick[1] == 1):
-                    self.s_pressed = True
-                else:
-                    self.s_pressed = False
-                    # print(outFromJoystick[0])
-                if (outFromJoystick[2] == 1):
-                    self.a_pressed = True
-                else:
-                    self.a_pressed = False
-                if (outFromJoystick[3] == 1):
-                    self.w_pressed = True
-                else:
-                    self.w_pressed = False
-                if (outFromJoystick[4] == 1):
-                    self.d_pressed = True
-                else:
-                    self.d_pressed = False
-                if (outFromJoystick[0] == 1):
-                    self.space_pressed = True
-                else:
-                    self.space_pressed = False
 
         self.mouse_move()
+
         self.player_move(frame_time)
 
         self.ctx.clear()
@@ -180,9 +153,10 @@ class App(mglw.WindowConfig):
         self.program['u_swordPos'] = sword_pos
         self.program['u_swordDir'] = sword_dir
 
-        # self.program['u_time'] = time
+        self.program['u_time'] = time
 
         self.program['u_enemiesPos'] = enemiesPos
+        self.program['u_enemiesDir'] = enemiesDir
 
         self.texture0.use(location=0)
         self.texture1.use(location=1)
@@ -196,8 +170,7 @@ class App(mglw.WindowConfig):
         self.compute_shader.run(1, 1, 1)
 
         self.ground_height = struct.unpack('<f', self.height_buffer.read())[0] + 5
-        self.ground_normal.clear()
-        self.ground_normal.extend(struct.unpack('<3f', self.normal_buffer.read()))
+        self.ground_normal[:] = struct.unpack('<3f', self.normal_buffer.read())
 
     def mouse_move(self):
         cursor = win32api.GetCursorPos()

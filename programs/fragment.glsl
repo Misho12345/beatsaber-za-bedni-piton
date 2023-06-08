@@ -2,7 +2,7 @@
 
 layout (location = 0) out vec4 fragColor;
 
-//uniform float u_time;
+uniform float u_time;
 uniform vec2 u_resolution;
 
 uniform vec3 u_camPos;
