@@ -36,11 +36,11 @@ import serial
 #         buffer = buffer[index + 1:]
 #         print(string)
 
-# class Vector3:
-#     def __init__(self, x, y, z):
-#         self.x = x
-#         self.y = y
-#         self.z = z
+class Vector3:
+    def __init__(self, x, y, z):
+        self.x = x
+        self.y = y
+        self.z = z
 
 
 def normalize_vector(vector):

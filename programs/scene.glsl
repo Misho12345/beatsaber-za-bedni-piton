@@ -81,15 +81,16 @@ Object sceneSDF(in vec3 pos, bool calcColor) {
     Object enemies = Object(MAX_DIST, materials[0]);
     Object sword = Object(MAX_DIST, materials[0]);
 
-    for (int i = 0; i < ENEMIES_COUNT; i++)
-        if (enemiesVisible[i])
-            enemies = minO(enemies, amogusSDF(pos - u_enemiesPos[i], u_enemiesDir[i]));
+    //for (int i = 0; i < ENEMIES_COUNT; i++)
+    //    if (enemiesVisible[i])
+    //        enemies = minO(enemies, amogusSDF(pos - u_enemiesPos[i], u_enemiesDir[i]));
 
     vec3 swordP = pos - u_camPos;
     swordP.zx *= rotateMat(u_camRot.x);
     swordP -= u_swordPos;
     sword = swordSDF(swordP, u_swordDir);
-
+    return sword;
+    vec3 a = u_enemiesDir[0];
     if (!calcColor) {
         float d = smin(enemies.dist, sword.dist, 0.3);
         d = min(d, mapH(pos));
