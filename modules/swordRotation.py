@@ -1,40 +1,13 @@
-from serialRead import *
-from typing import List
-from math import *
-import threading
-a = 'Ax:+1.04Ay:-0.03Az:-0.23Gx:+0.00Gy:+0.00Gz:+0.00'
 from main import *
 import math
-import time
-swordWorking = True
-import serial
+import threading
+from typing import List
+from serialRead import *
 
-# # Create a serial object
-# ser = serial.Serial('COM5', 115200)  # Replace 'COM1' with the appropriate port
-#
-#
-# # Function to read a complete string
-# def read_complete_string():
-#     message = ''
-#     while True:
-#         char = ser.read().decode()  # Read a single character
-#         if char == '\n':  # Assuming the string ends with a newline character
-#             break
-#         message += char
-#     return message
-#
-#
-# # Main program
-# buffer = ''
-# while True:
-#     buffer += read_complete_string()
-#
-#     # Process complete strings in the buffer
-#     while '\n' in buffer:
-#         index = buffer.index('\n')
-#         string = buffer[:index + 1]
-#         buffer = buffer[index + 1:]
-#         print(string)
+swordWorking = True
+
+a = 'Ax:+1.04Ay:-0.03Az:-0.23Gx:+0.00Gy:+0.00Gz:+0.00'
+
 
 class Vector3:
     def __init__(self, x, y, z):
@@ -49,7 +22,7 @@ def normalize_vector(vector):
 
 
 def intersect_camera_with_sphere(camera_direction):
-    sphere_center = Vector3(0.0,0.0,0.0)
+    sphere_center = Vector3(0.0, 0.0, 0.0)
     sphere_radius = 1
     camera_direction = normalize_vector(camera_direction)
     sphere_to_camera = Vector3(
@@ -58,10 +31,17 @@ def intersect_camera_with_sphere(camera_direction):
         camera_direction.z - sphere_center.z
     )
 
-    a = camera_direction.x * camera_direction.x + camera_direction.y * camera_direction.y + camera_direction.z * camera_direction.z
-    b = 2 * (
-                sphere_to_camera.x * camera_direction.x + sphere_to_camera.y * camera_direction.y + sphere_to_camera.z * camera_direction.z)
-    c = sphere_to_camera.x * sphere_to_camera.x + sphere_to_camera.y * sphere_to_camera.y + sphere_to_camera.z * sphere_to_camera.z - sphere_radius * sphere_radius
+    a = camera_direction.x * camera_direction.x + \
+        camera_direction.y * camera_direction.y + \
+        camera_direction.z * camera_direction.z
+
+    b = 2 * (sphere_to_camera.x * camera_direction.x +
+             sphere_to_camera.y * camera_direction.y +
+             sphere_to_camera.z * camera_direction.z)
+
+    c = sphere_to_camera.x * sphere_to_camera.x + \
+        sphere_to_camera.y * sphere_to_camera.y + \
+        sphere_to_camera.z * sphere_to_camera.z - sphere_radius * sphere_radius
 
     discriminant = b * b - 4 * a * c
     if discriminant < 0:
@@ -83,7 +63,6 @@ def get_orientation(sensor_data: List[float]):
     ax, ay, az, gx, gy, gz = sensor_data
 
     # Calculate pitch and roll angles using accelerometer data
-    pitch = atan2(ax, sqrt(ay ** 2 + az ** 2))
     roll = atan2(ay, sqrt(ax ** 2 + az ** 2))
 
     # Calculate yaw angle using gyroscope data
@@ -142,7 +121,6 @@ def calculate_vector_coordinates(accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro
             sin_roll * sin_yaw + cos_roll * sin_pitch * cos_yaw) * vector_dir_z
     z = sin_pitch * vector_dir_x - sin_roll * cos_pitch * vector_dir_y + cos_roll * cos_pitch * vector_dir_z
 
-    # Calculate the intersection point with the unit sphere
     intersection_mag = 1.0  # Radius of the unit sphere
     intersection_x = x * intersection_mag
     intersection_y = y * intersection_mag
@@ -152,7 +130,6 @@ def calculate_vector_coordinates(accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro
 
 
 def integrate_gyro_data(accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro_z, dt):
-    # Integrate the angular velocity to obtain the estimated orientation
     roll = 0.0
     pitch = 0.0
     yaw = 0.0
@@ -160,9 +137,7 @@ def integrate_gyro_data(accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro_z, dt):
     roll += gyro_x * dt
     pitch += gyro_y * dt
     yaw += gyro_z * dt
-    # Apply complementary filter to combine the estimated orientation with accelerometer data
     alp = 0.98
-    # Complementary filter coefficient
 
     accel_roll = atan2(accel_y, accel_z)
     accel_pitch = atan2(-accel_x, sqrt(accel_y ** 2 + accel_z ** 2))
@@ -173,54 +148,20 @@ def integrate_gyro_data(accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro_z, dt):
     return roll, pitch, yaw
 
 
-# def calculate_vector_coordinates(accel_x, accel_y, accel_z):
-#     # Normalize accelerometer readings
-#     accel_mag = math.sqrt(accel_x ** 2 + accel_y ** 2 + accel_z ** 2)
-#     accel_x_norm = accel_x / accel_mag
-#     accel_y_norm = accel_y / accel_mag
-#     accel_z_norm = accel_z / accel_mag
-#
-#     # Calculate the direction of the vector
-#     vector_dir_x = -accel_x_norm  # Negate for opposite direction
-#     vector_dir_y = -accel_y_norm
-#     vector_dir_z = -accel_z_norm
-#
-#     # Calculate the intersection point with the unit sphere
-#     intersection_mag = 1.0  # Radius of the unit sphere
-#     intersection_x = vector_dir_x * intersection_mag
-#     intersection_y = vector_dir_y * intersection_mag
-#     intersection_z = vector_dir_z * intersection_mag
-#
-#     return intersection_x, intersection_y, intersection_z
-# 0521,0512,0,0,0,0,0,0,0,+0.16,-0.68,-0.90,-0.01,-0.03,+0.00
-def rotateSword(sword_rot,camera_rot):
+def rotate_sword(sword_rot):
     print(sword_dir)
-    # sword_rot[0] = cos(time)
-    # sword_rot[2] = sin(time)
-    serialOutput = serialcomm.readline().decode('utf8', 'ignore')
-    if(len(serialOutput)==lenOfOutputStr):
-        # print(serialOutput)
-        b = decodeInfo(serialOutput)
-        # print(b, a+'G')
+    serial_output = serial_com.readline().decode('utf8', 'ignore')
+    if len(serial_output) == lenOfOutputStr:
+        b = decode_info(serial_output)
         sensor_data = b  # example sensor data
         orientation = calculate_vector_coordinates(sensor_data[9], sensor_data[10], sensor_data[11], sensor_data[12],
                                                    sensor_data[13], sensor_data[14], 0.05)
-        # print(orientation)
 
-        # cameraAngle = intersect_camera_with_sphere(camera_direction=camera_rot)
-        # orientation[0] +=cameraAngle.x
-        # orientation[1] +=cameraAngle.y
-        # orientation[2] +=cameraAngle.z
+        sword_rot[0] = orientation[0]
+        sword_rot[2] = orientation[1]
+        sword_rot[1] = orientation[2]
 
 
-        # sword_rot[:] = orientation
-        sword_rot[0]=orientation[0]
-        sword_rot[2]=orientation[1]
-        sword_rot[1]=orientation[2]
-        # return orientation
-    else:
-        # print(len(serialOutput), serialOutput)
-        pass
-def startRotating():
-    x = threading.Thread(target=rotateSword, args=(sword_dir))
+def start_rotating():
+    x = threading.Thread(target=rotate_sword, args=sword_dir)
     x.start()

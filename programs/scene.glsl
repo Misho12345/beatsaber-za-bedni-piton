@@ -6,12 +6,6 @@ Material materials[] = {
 	Material(vec3(0.3, 0.6, 1.0), 0.5)   // light blue (eyes)
 };
 
-vec3 hsv2rgb(vec3 c) {
-    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
-    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
-}
-
 vec3 get_sword_col(float x, float t) {
     return vec3(0.8, sin(x / 2 - t * 2.0) / 8.0 + 0.5, 0.2);
 }
@@ -81,16 +75,15 @@ Object sceneSDF(in vec3 pos, bool calcColor) {
     Object enemies = Object(MAX_DIST, materials[0]);
     Object sword = Object(MAX_DIST, materials[0]);
 
-    //for (int i = 0; i < ENEMIES_COUNT; i++)
-    //    if (enemiesVisible[i])
-    //        enemies = minO(enemies, amogusSDF(pos - u_enemiesPos[i], u_enemiesDir[i]));
+    for (int i = 0; i < ENEMIES_COUNT; i++)
+        if (enemiesVisible[i])
+            enemies = minO(enemies, amogusSDF(pos - u_enemiesPos[i], u_enemiesDir[i]));
 
     vec3 swordP = pos - u_camPos;
     swordP.zx *= rotateMat(u_camRot.x);
     swordP -= u_swordPos;
     sword = swordSDF(swordP, u_swordDir);
-    return sword;
-    vec3 a = u_enemiesDir[0];
+
     if (!calcColor) {
         float d = smin(enemies.dist, sword.dist, 0.3);
         d = min(d, mapH(pos));

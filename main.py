@@ -1,18 +1,18 @@
 import moderngl_window as mglw
 import moderngl_window.geometry
 from screeninfo import get_monitors
-import win32api
-import numpy as np
-import struct
-
 import sys
+
 sys.path.append("modules")
-sword_plugged = True
+sword_plugged = False
 
 if sword_plugged:
     from modules.swordRotation import *
 else:
     from math import *
+    import win32api
+    import numpy as np
+    import struct
 
 cam_rot = [0, 0]
 cam_pos = [0, 150, 0]
@@ -65,7 +65,7 @@ def dot(vec1, vec2):
 
 class App(mglw.WindowConfig):
     title = "Ray Marching"
-    cursor = False
+    # cursor = False
     fullscreen = True
     window_size = monitor.width, monitor.height
     resource_dir = 'programs'
@@ -139,7 +139,7 @@ class App(mglw.WindowConfig):
 
         self.update_player_y(frame_time)
         if sword_plugged:
-            rotateSword(sword_dir, cam_rot)
+            rotate_sword(sword_dir)
             # sword_rot[:]=rotateSword()
 
         self.mouse_move()
@@ -262,5 +262,3 @@ class App(mglw.WindowConfig):
 
 if __name__ == '__main__':
     mglw.run_window_config(App)
-
-
