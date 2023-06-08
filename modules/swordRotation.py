@@ -3,7 +3,7 @@ from typing import List
 from math import *
 import threading
 a = 'Ax:+1.04Ay:-0.03Az:-0.23Gx:+0.00Gy:+0.00Gz:+0.00'
-
+from main import *
 import math
 import time
 swordWorking = True
@@ -194,6 +194,7 @@ def integrate_gyro_data(accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro_z, dt):
 #     return intersection_x, intersection_y, intersection_z
 # 0521,0512,0,0,0,0,0,0,0,+0.16,-0.68,-0.90,-0.01,-0.03,+0.00
 def rotateSword(sword_rot,camera_rot):
+    print(sword_dir)
     # sword_rot[0] = cos(time)
     # sword_rot[2] = sin(time)
     serialOutput = serialcomm.readline().decode('utf8', 'ignore')
@@ -221,5 +222,5 @@ def rotateSword(sword_rot,camera_rot):
         # print(len(serialOutput), serialOutput)
         pass
 def startRotating():
-    x = threading.Thread(target=rotateSword, args=())
+    x = threading.Thread(target=rotateSword, args=(sword_dir))
     x.start()

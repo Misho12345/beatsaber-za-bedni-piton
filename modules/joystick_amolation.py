@@ -105,15 +105,16 @@ def runJoystick():
         x = int(ux)
         y = int(uy)
 
-        offset=512
+        offsetX=521
+        offsetY=512
         if y > 330:
-            move('left', (-(y - offset) / 100) * sensytyvyty)
+            move('left', (-(y - offsetY) / 100) * sensytyvyty)
         elif y < 330:
-            move('right', (-(y - offset) / 100) * sensytyvyty)
+            move('right', (-(y - offsetY) / 100) * sensytyvyty)
         if x > 330:
-            move('up', ((x - offset) / 100) * sensytyvyty)
+            move('up', ((x - offsetX) / 100) * sensytyvyty)
         elif x < 330:
-            move('down', ((x - offset) / 100) * sensytyvyty)
+            move('down', ((x - offsetX) / 100) * sensytyvyty)
         else:
             move('.')
         output=[]

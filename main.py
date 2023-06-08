@@ -7,10 +7,11 @@ import struct
 
 import sys
 sys.path.append("modules")
-sword_plugged = False
+sword_plugged = True
 
 if sword_plugged:
     from modules.swordRotation import *
+    from modules.joystick_amolation import *
 else:
     from math import *
 
@@ -27,16 +28,18 @@ SENSITIVITY = 1.5
 monitor = get_monitors()[0]
 
 enemiesPos = [
-    [100, 100, 0],
-    [120, 100, 0],
-    [140, 100, 0],
-    [100, 100, 20],
-    [120, 100, 20],
-    [140, 100, 20],
-    [100, 100, 40],
-    [120, 100, 40],
-    [140, 100, 40],
+    # [100, 100, 0],
+    # [120, 100, 0],
+    # [140, 100, 0],
+    # [100, 100, 20],
+    # [120, 100, 20],
+    # [140, 100, 20],
+    # [100, 100, 40],
+    # [120, 100, 40],
+    # [140, 100, 40],
 ]
+
+enemiesDir = [[] for _ in range(len(enemiesPos))]
 
 
 def add(v1: list, v2: list) -> list:
@@ -63,7 +66,7 @@ def dot(vec1, vec2):
 
 class App(mglw.WindowConfig):
     title = "Ray Marching"
-    # cursor = False
+    cursor = False
     fullscreen = True
     window_size = monitor.width, monitor.height
     resource_dir = 'programs'
@@ -115,6 +118,22 @@ class App(mglw.WindowConfig):
         self.ground_height = 0
         self.ground_normal = []
 
+        cam_pos_backup = cam_pos.copy()
+        for i in range(len(enemiesPos)):
+            cam_pos[::2] = enemiesPos[i][::2]
+            self.get_ground_height()
+            enemiesPos[i][1] = self.ground_height - 3
+
+            enemiesDir[i][:] = self.ground_normal
+            enemiesDir[i][0], enemiesDir[i][1] = -enemiesDir[i][1], enemiesDir[i][0]
+
+        cam_pos[:] = cam_pos_backup
+        self.program['u_enemiesPos'] = enemiesPos
+        self.program['u_enemiesDir'] = enemiesDir
+
+        # if sword_plugged:
+        #     startRotating()
+
     def render(self, time, frame_time):
         if prev_cam_pos != cam_pos:
             prev_cam_pos.clear()
@@ -161,9 +180,9 @@ class App(mglw.WindowConfig):
         self.program['u_swordPos'] = sword_pos
         self.program['u_swordDir'] = sword_dir
 
-        self.program['u_time'] = time
+        # self.program['u_time'] = time
 
-        self.program['u_enemiesPos'] = enemies
+        self.program['u_enemiesPos'] = enemiesPos
 
         self.texture0.use(location=0)
         self.texture1.use(location=1)
@@ -271,5 +290,4 @@ class App(mglw.WindowConfig):
 if __name__ == '__main__':
     mglw.run_window_config(App)
 
-if sword_plugged:
-    startRotating()
+
