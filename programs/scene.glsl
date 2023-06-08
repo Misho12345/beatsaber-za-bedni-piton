@@ -2,11 +2,19 @@ Material materials[] = {
 	Material(vec3(0.8, 0.8, 0.8), 0.5),  // default white
 	Material(vec3(0.3, 0.3, 0.3), 0.5),  // gray (sword hilt)
 	Material(vec3(0.25, 0.15, 0.1), 0.5), // brown (sword guard and ball)
-	Material(vec3(0.6, 0.4, 0.2), 0.5),  // blue (sword blade)
 	Material(vec3(0.8, 0.2, 0.2), 0.5),  // red (amogus color)
 	Material(vec3(0.3, 0.6, 1.0), 0.5)   // light blue (eyes)
 };
 
+vec3 hsv2rgb(vec3 c) {
+    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+}
+
+vec3 get_sword_col(float x, float t) {
+    return vec3(0.8, sin(x / 2 - t * 2.0) / 8.0 + 0.5, 0.2);
+}
 
 Object swordSDF(in vec3 pos, in vec3 dir) {
     dir = normalize(dir);
@@ -29,9 +37,11 @@ Object swordSDF(in vec3 pos, in vec3 dir) {
     float b2 = mix(0.6, 0.8, 1 - clamp01((abs(bladeP.x - 5.0) + 5.0) / 27.0));
     float b = min(b1, b2);
 
+    Material mat = Material(get_sword_col(pos.x, u_time), 0.3);
+
     Object hilt = Object(cylinderSDF(hiltP, 0.7 + abs(sin(hiltP.x * 2.0) / 10.0), 7.0), materials[1]);
     Object sphereAndGuard = Object(min(sphereSDF(pos, 1.4), cylinderSDF(guardP, 3.0, 0.45)), materials[2]);
-    Object blade = Object(boxSDF(bladeP, vec3(20, b, b)), materials[3]);
+    Object blade = Object(boxSDF(bladeP, vec3(20, b, b)), mat);//materials[3]);
 
     Object res = sminO(sminO(hilt, sphereAndGuard, 0.3), blade, 0.7);
     res.dist *= scale;
@@ -58,8 +68,8 @@ Object amogusSDF(in vec3 pos, in vec3 dir) {
     b = smin(b, bodyDist, 0.7);
     b = smin(b, backpackDist, 0.4);
 
-    Object body = Object(b, materials[4]);
-    Object eyes = Object(eyesDist, materials[5]);
+    Object body = Object(b, materials[3]);
+    Object eyes = Object(eyesDist, materials[4]);
 
     Object res = sminO(body, eyes, 0.1);
     res.dist *= scale;
@@ -81,7 +91,7 @@ Object sceneSDF(in vec3 pos, bool calcColor) {
     sword = swordSDF(swordP, u_swordDir);
 
     if (!calcColor) {
-        float d = min(enemies.dist, sword.dist);
+        float d = smin(enemies.dist, sword.dist, 0.3);
         d = min(d, mapH(pos));
         return Object(d, materials[0]);
     }
@@ -89,5 +99,5 @@ Object sceneSDF(in vec3 pos, bool calcColor) {
     vec2 groundDist = map(pos);
     Object ground = Object(groundDist.x, getMaterial(pos, groundDist));
 
-    return minO(minO(enemies, sword), ground);
+    return minO(sminO(enemies, sword, 0.3), ground);
 }

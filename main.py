@@ -27,15 +27,15 @@ SENSITIVITY = 1.5
 monitor = get_monitors()[0]
 
 enemiesPos = [
-    [100, 100, 0],
-    [120, 100, 0],
-    [140, 100, 0],
-    [100, 100, 20],
-    [120, 100, 20],
-    [140, 100, 20],
-    [100, 100, 40],
-    [120, 100, 40],
-    [140, 100, 40],
+    [100, 100, 100],
+    [140, 100, 100],
+    [160, 100, 100],
+    [100, 100, 140],
+    [140, 100, 140],
+    [160, 100, 140],
+    [100, 100, 160],
+    [140, 100, 160],
+    [160, 100, 160],
 ]
 
 enemiesDir = [[] for _ in range(9)]
@@ -153,7 +153,7 @@ class App(mglw.WindowConfig):
         self.program['u_swordPos'] = sword_pos
         self.program['u_swordDir'] = sword_dir
 
-        # self.program['u_time'] = time
+        self.program['u_time'] = time
 
         self.program['u_enemiesPos'] = enemiesPos
         self.program['u_enemiesDir'] = enemiesDir
