@@ -4,9 +4,9 @@ from screeninfo import get_monitors
 import sys
 
 sys.path.append("modules")
-sword_plugged = False
+ARDUINO_ENABLED = False
 
-if sword_plugged:
+if ARDUINO_ENABLED:
     from modules.swordRotation import *
 else:
     from math import *
@@ -130,7 +130,7 @@ class App(mglw.WindowConfig):
         self.program['u_enemiesPos'] = enemiesPos
         self.program['u_enemiesDir'] = enemiesDir
 
-    def render(self, time, frame_time):
+    def on_render(self, time, frame_time):
         if prev_cam_pos != cam_pos:
             prev_cam_pos[:] = cam_pos
 
@@ -138,7 +138,7 @@ class App(mglw.WindowConfig):
             cam_pos[1] = max(cam_pos[1], self.ground_height)
 
         self.update_player_y(frame_time)
-        if sword_plugged:
+        if ARDUINO_ENABLED:
             rotate_sword(sword_dir)
             # sword_rot[:]=rotateSword()
 
@@ -232,7 +232,10 @@ class App(mglw.WindowConfig):
         else:
             self.on_ground = cam_pos[1] == self.ground_height
 
-    def key_event(self, key, action, modifiers):
+    def on_mouse_press_event(self, x, y, button):
+        self.wnd.cursor = False
+
+    def on_key_event(self, key, action, modifiers):
         if action == self.wnd.keys.ACTION_PRESS:
             if key == self.wnd.keys.W:
                 self.w_pressed = True
